@@ -1,5 +1,5 @@
 My status bar engine
---------------------
+====================
 
 This is a status bar engine (surprise) made for linux.  
 
