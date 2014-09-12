@@ -7,13 +7,14 @@ import time
 import logging
 
 import os
-from os.path import isfile, join
-import datetime
+from os.path import isfile
+import sys
 
 from importlib import import_module, reload
 
 SAFE_MODULES_ONLY = True
-MODULES_PATH = "widgets"
+os.chdir(os.path.dirname(__file__) + "/widgets/")
+sys.path.append(os.getcwd())
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -113,7 +114,7 @@ class WidgetsReloader (threading.Thread):
         inoProc = subprocess.Popen(
             ["inotifywait",
                 "--event", "modify,create,move,delete",
-                "-m", MODULES_PATH],
+                "-m", "."],
             stdout=subprocess.PIPE,
             universal_newlines=True)
 
@@ -122,7 +123,7 @@ class WidgetsReloader (threading.Thread):
                 break
             read = inoProc.stdout.readline()
             folder, event, fileName = read[:-1].split(" ", 2)
-            if (folder != MODULES_PATH + "/" or
+            if (folder != "./" or
                     fileName[-3:] != ".py"):
                 continue
 
@@ -236,23 +237,15 @@ class Widget:
 
     @classmethod
     def loadAllModules(cls):
-        allFiles = os.listdir(MODULES_PATH)
-        modulesFiles = [f for f in allFiles if isfile(join(MODULES_PATH, f))]
-        for fileName in sorted(modulesFiles):
-            try:
-                module = import_module(".".join([MODULES_PATH, fileName[:-3]]))
-                cls.widgetsList.append(cls(module, fileName))
-            except (ImportError,
-                    Widget.CollidingNamesException,
-                    Widget.BadInitializationException,
-                    Widget.NotSafeException) as e:
-                logger.info(
-                    "{}: NOT Loaded\n\tReason: {}".format(fileName, str(e)))
+        allFiles = os.listdir("./")
+        modulesFiles = [f for f in allFiles if isfile(f)]
+        for fileName in modulesFiles:
+            cls.loadModule(fileName)
 
     @classmethod
     def loadModule(cls, fileName):
         try:
-            module = reload(import_module("widgets." + fileName[:-3]))
+            module = reload(import_module(fileName[:-3]))
             for i in range(len(cls.widgetsList)):
                 if cls.widgetsList[i].fileName > fileName:
                     cls.widgetsList.insert(i, cls(module, fileName))
@@ -264,7 +257,7 @@ class Widget:
                 Widget.BadInitializationException,
                 Widget.NotSafeException) as e:
             logger.info(
-                "{}: NOT Loaded\n\tReason: {}".format(fileName, str(e)))
+                "{}: NOT Loaded Reason: {}".format(fileName, str(e)))
 
     @classmethod
     def unloadModule(cls, fileName):
@@ -342,9 +335,9 @@ def main():
 
 
 if __name__ == "__main__":
-    os.chdir(os.path.dirname(__file__))
 
     logger.debug("Program started")
+    logger.debug(os.getcwd())
 
     main()
     logger.warning("Main thread is dead!")
