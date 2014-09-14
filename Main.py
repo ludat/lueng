@@ -314,10 +314,12 @@ def main():
     dzenProcess = subprocess.Popen(
         ["dzen2",
             "-ta", "r",
-            "-bg", "#098506",
+            "-bg", "#161616",
             "-fn", "Terminus:size=8",
             "-w", "1300",
-            "-x", "500"],
+            "-x", "500",
+            "-e", "",
+            "-dock"],
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         universal_newlines=True)
