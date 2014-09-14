@@ -7,14 +7,22 @@ import time
 import logging
 
 import os
-from os.path import isfile
+from os.path import isfile, exists
 import sys
 
 from importlib import import_module, reload
 
 SAFE_MODULES_ONLY = True
+USE_INOTIFY = True
 os.chdir(os.path.dirname(__file__) + "/widgets/")
 sys.path.append(os.getcwd())
+
+paths = os.getenv("PATH").split(":")
+for path in paths:
+    if exists(path+"/inotifywait"):
+        break
+else:
+    USE_INOTIFY = False
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -300,7 +308,8 @@ def main():
 
     Widget.startAll()
 
-    widgetsMonitor.start()
+    if USE_INOTIFY:
+        widgetsMonitor.start()
 
     dzenProcess = subprocess.Popen(
         ["dzen2",
@@ -335,9 +344,7 @@ def main():
 
 
 if __name__ == "__main__":
-
     logger.debug("Program started")
     logger.debug(os.getcwd())
-
     main()
     logger.warning("Main thread is dead!")
