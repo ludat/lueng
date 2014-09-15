@@ -19,18 +19,20 @@ class mainThread (threading.Thread):
         self._killed.clear()
 
     def run(self):
-        powerSupplyPath = None
-        power_supplies = os.listdir("/sys/class/power_supply")
-        for power_supply in power_supplies:
-            if "BAT" in power_supply:
-                powerSupplyPath = "/sys/class/power_supply/" + power_supply
-                break
-        else:
-            self.batteryNotFound()
-            return
-
+        powerSupplyPath = ""
         result = ""
+        batDir = "/sys/class/power_supply/"
         while True:
+            if not os.path.exists(powerSupplyPath):
+                power_supplies = os.listdir(batDir)
+                for power_supply in power_supplies:
+                    if "BAT" in power_supply:
+                        powerSupplyPath = batDir + power_supply
+                        break
+                else:
+                    self.batteryNotFound()
+                    continue
+
             statusFile = open(powerSupplyPath + "/status")
             chargeFullFile = open(powerSupplyPath + "/charge_full")
             chargeNowFile = open(powerSupplyPath + "/charge_now")
@@ -51,6 +53,7 @@ class mainThread (threading.Thread):
                 result = str(round(chargeNow*100/chargeFull)) + "%"
             else:
                 result = "Unmanaged battery status:" + status
+
             if self.killed():
                 break
             self.mainQueue.put({'name': self.name, 'content': result})
