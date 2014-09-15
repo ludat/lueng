@@ -57,7 +57,9 @@ class mainThread (threading.Thread):
             time.sleep(3)
 
     def batteryNotFound(self):
-        pass
+        self.mainQueue.put({'name': self.name, 'content': "Battery not found"})
+        time.sleep(10)
+        self.mainQueue.put({'name': self.name, 'content': ""})
 
     def killed(self):
         return self._killed.is_set()
