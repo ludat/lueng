@@ -42,6 +42,10 @@ class mainThread (threading.Thread):
             chargeFull = int(chargeFullFile.read())
             chargeNow = int(chargeNowFile.read())
 
+            statusFile.close()
+            chargeFullFile.close()
+            chargeNowFile.close()
+
             if status == "":
                 result = ""
             elif status == "Unknown":
