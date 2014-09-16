@@ -26,7 +26,10 @@ class mainThread (threading.Thread):
         while True:
             if self.killed():
                 break
-            freeProc = subprocess.Popen(["free"], stdout=subprocess.PIPE, universal_newlines=True)
+            freeProc = subprocess.Popen(
+                ["free"],
+                stdout=subprocess.PIPE,
+                universal_newlines=True)
             freeProc.wait()
             freeOutput = freeProc.stdout.read()
             d = freeRegex.search(freeOutput).groupdict()
@@ -41,14 +44,14 @@ class mainThread (threading.Thread):
             self.lastUpdate = string
 
     def format(self, d):
-        string = ""
         for k in d:
             d[k] = int(d[k])
 
-        used = round( d['used'] * WIDTH / d['total'] )
-        free = round( d['free'] * WIDTH / d['total'] )
+        used = round(d['used'] * WIDTH / d['total'])
+        free = round(d['free'] * WIDTH / d['total'])
 
-        return ("^fg(#CCCCCC)^r({}x1)^fg(#999999)^r({}x1)^fg()".format(used, free))
+        return (
+            "^fg(#CCCCCC)^r({}x1)^fg(#999999)^r({}x1)^fg()".format(used, free))
 
     def killed(self):
         return self._killed.is_set()
