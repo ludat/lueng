@@ -21,10 +21,10 @@ class mainThread (threading.Thread):
 
     def run(self):
         while True:
-            if self.killed():
-                break
             now = datetime.datetime.now()
             result = now.strftime("%Y-%m-%d %H:%M:%S")
+            if self.killed():
+                break
             self.updateContent(result)
             sleep(1)
         return 0

@@ -24,8 +24,6 @@ class mainThread (threading.Thread):
     def run(self):
         freeRegex = re.compile("Mem: *(?P<total>[0-9]+).*?cache: *(?P<used>[0-9]+) *(?P<free>[0-9]+)", re.DOTALL)
         while True:
-            if self.killed():
-                break
             freeProc = subprocess.Popen(
                 ["free"],
                 stdout=subprocess.PIPE,
@@ -34,6 +32,8 @@ class mainThread (threading.Thread):
             freeOutput = freeProc.stdout.read()
             d = freeRegex.search(freeOutput).groupdict()
             result = self.format(d)
+            if self.killed():
+                break
             self.updateContent(result)
             sleep(1)
         return 0

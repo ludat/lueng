@@ -25,8 +25,6 @@ class mainThread (threading.Thread):
             ("[0-9]*\\.[0-9]*\\.[0-9]*\\.[0-9]*/[0-9]*"),
             re.DOTALL)
         while True:
-            if self.killed():
-                break
             IPProc = subprocess.Popen(
                 ["ip", "a"],
                 stdout=subprocess.PIPE,
@@ -39,6 +37,8 @@ class mainThread (threading.Thread):
                 if IP != "127.0.0.1/8":
                     result = IP
 
+            if self.killed():
+                break
             self.updateContent(result)
             time.sleep(3)
 

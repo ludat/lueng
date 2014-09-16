@@ -33,8 +33,6 @@ class mainThread (threading.Thread):
             re.DOTALL)
         result = ""
         while True:
-            if self.killed():
-                break
             statusProc = subprocess.Popen(
                 ["pactl", "list", "sinks"],
                 stdout=subprocess.PIPE,
@@ -46,6 +44,8 @@ class mainThread (threading.Thread):
                 result = str(((int(d['left']) + int(d['left'])) // 2)) + "%"
             if d['mute'] == 'yes':
                 result = "muted"
+            if self.killed():
+                break
             self.updateContent(result)
             result = ""
             cond = True
