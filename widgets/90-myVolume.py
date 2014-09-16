@@ -29,7 +29,10 @@ class mainThread (threading.Thread):
             stdout=subprocess.PIPE,
             universal_newlines=True)
         stateRegex = re.compile(
-            "Mute: (?P<mute>\w+).*?Volume.*?(?P<left>[0-9]+)%.*?(?P<right>[0-9]+)%.*",
+            (
+                "Mute: (?P<mute>\w+).*?"
+                "Volume.*?(?P<left>[0-9]+)%.*?(?P<right>[0-9]+)%.*"
+            ),
             re.DOTALL)
         while True:
             if self.killed():
@@ -83,7 +86,10 @@ class InputThread (threading.Thread):
 
     def run(self):
         stateRegex = re.compile(
-            "Mute: (?P<mute>\w+).*?Volume.*?(?P<left>[0-9]+)%.*?(?P<right>[0-9]+)%.*",
+            (
+                "Mute: (?P<mute>\w+).*?"
+                "Volume.*?(?P<left>[0-9]+)%.*?(?P<right>[0-9]+)%.*"
+            ),
             re.DOTALL)
         while True:
             if self.killed():
