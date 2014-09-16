@@ -16,6 +16,7 @@ class mainThread (threading.Thread):
         self.name = NAME
         self.logger = logger
         self.mainQueue = mainQueue
+        self.lastUpdate = "dsadwa"
         self._killed = threading.Event()
         self._killed.clear()
 
@@ -38,8 +39,13 @@ class mainThread (threading.Thread):
                 if IP != "127.0.0.1/8":
                     result = IP
 
-            self.mainQueue.put({'name': self.name, 'content': result})
+            self.updateContent(result)
             time.sleep(3)
+
+    def updateContent(self, string):
+        if string != self.lastUpdate:
+            self.mainQueue.put({'name': self.name, 'content': string})
+            self.lastUpdate = string
 
     def killed(self):
         return self._killed.is_set()

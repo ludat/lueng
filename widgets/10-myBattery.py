@@ -15,6 +15,7 @@ class mainThread (threading.Thread):
         self.name = NAME
         self.logger = logger
         self.mainQueue = mainQueue
+        self.lastUpdate = "dsadwa"
         self._killed = threading.Event()
         self._killed.clear()
 
@@ -56,13 +57,17 @@ class mainThread (threading.Thread):
 
             if self.killed():
                 break
-            self.mainQueue.put({'name': self.name, 'content': result})
-            time.sleep(3)
+            self.updateContent(result)
+            time.sleep(1)
+
+    def updateContent(self, string):
+        if string != self.lastUpdate:
+            self.mainQueue.put({'name': self.name, 'content': string})
+            self.lastUpdate = string
 
     def batteryNotFound(self):
-        self.mainQueue.put({'name': self.name, 'content': "Battery not found"})
-        time.sleep(10)
-        self.mainQueue.put({'name': self.name, 'content': ""})
+        self.updateContent("No Bat")
+        time.sleep(1)
 
     def killed(self):
         return self._killed.is_set()

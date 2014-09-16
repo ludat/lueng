@@ -15,6 +15,7 @@ class mainThread (threading.Thread):
         self.name = NAME
         self.logger = logger
         self.mainQueue = mainQueue
+        self.lastUpdate = "dsadwa"
         self._killed = threading.Event()
         self._killed.clear()
 
@@ -45,13 +46,18 @@ class mainThread (threading.Thread):
                 result = str(((int(d['left']) + int(d['left'])) // 2)) + "%"
             if d['mute'] == 'yes':
                 result = "muted"
-            self.mainQueue.put({'name': self.name, 'content': result})
+            self.updateContent(result)
             result = ""
             cond = True
             while cond:
                 delta = susc.stdout.readline()[:-1].split(" ")
                 if delta[3] == "sink"and delta[4] == "#0":
                     cond = False
+
+    def updateContent(self, string):
+        if string != self.lastUpdate:
+            self.mainQueue.put({'name': self.name, 'content': string})
+            self.lastUpdate = string
 
     def killed(self):
         return self._killed.is_set()

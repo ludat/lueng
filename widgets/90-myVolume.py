@@ -15,6 +15,7 @@ class mainThread (threading.Thread):
         self.name = NAME
         self.logger = logger
         self.mainQueue = mainQueue
+        self.lastUpdate = "dsadwa"
         self.inputQueue = inputQueue
         self.inputThread = InputThread(self.name, self.inputQueue)
         self._killed = threading.Event()
@@ -44,9 +45,7 @@ class mainThread (threading.Thread):
                 result = str((int(d['left']) + int(d['left'])) // 2) + "%"
             if d['mute'] == 'yes':
                 result = "muted"
-            self.mainQueue.put({
-                'name': self.name,
-                'content': self.parse(result)})
+            self.updateContent(self.parse(result))
             while True:
                 delta = susc.stdout.readline()[:-1].split(" ")
                 if delta == ['']:
@@ -56,6 +55,11 @@ class mainThread (threading.Thread):
         susc.terminate()
         self.inputThread.kill()
         return 0
+
+    def updateContent(self, string):
+        if string != self.lastUpdate:
+            self.mainQueue.put({'name': self.name, 'content': string})
+            self.lastUpdate = string
 
     def parse(self, string):
         string = "^ca(1, echo " + self.name + "@clicked)" + string
