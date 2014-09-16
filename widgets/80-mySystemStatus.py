@@ -22,7 +22,12 @@ class mainThread (threading.Thread):
         self._killed.clear()
 
     def run(self):
-        freeRegex = re.compile("Mem: *(?P<total>[0-9]+).*?cache: *(?P<used>[0-9]+) *(?P<free>[0-9]+)", re.DOTALL)
+        freeRegex = re.compile(
+            (
+                "Mem: *(?P<total>[0-9]+).*?"
+                "cache: *(?P<used>[0-9]+) *(?P<free>[0-9]+)"
+            ),
+            re.DOTALL)
         while True:
             freeProc = subprocess.Popen(
                 ["free"],
