@@ -54,4 +54,29 @@ class mainThread (threading.Thread):
         self._killed.set()
 
 if __name__ == "__main__":
-    pass
+    import queue
+    import logging
+
+    class TestInputThread(threading.Thread):
+        def __init__(self, inputQueue):
+            threading.Thread.__init__(self)
+            self.inputQueue = inputQueue
+
+        def run(self):
+            while True:
+                self.inputQueue.put(input())
+
+    inputQueue = queue.Queue()
+    mainQueue = queue.Queue()
+
+    inputThread = TestInputThread(inputQueue)
+
+    thread = mainThread(
+        mainQueue,
+        inputQueue=inputQueue,
+        logger=logging.getLogger("main"))
+    thread.start()
+    inputThread.start()
+
+    while True:
+        print(mainQueue.get()['content'])
