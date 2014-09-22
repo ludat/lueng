@@ -40,10 +40,17 @@ class mainThread (threading.Thread):
             if self.killed():
                 break
             self.updateContent(result)
-            time.sleep(3)
+            time.sleep(1)
 
     def updateContent(self, string):
         if string != self.lastUpdate:
+            if string == "":
+                Proc = subprocess.Popen(
+                    ["festival", "--tts"],
+                    stdin=subprocess.PIPE,
+                    universal_newlines=True)
+                Proc.stdin.write("connection lost")
+                Proc.stdin.close()
             self.mainQueue.put({'name': self.name, 'content': string})
             self.lastUpdate = string
 
