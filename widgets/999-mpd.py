@@ -22,7 +22,7 @@ class mainThread (threading.Thread):
     def run(self):
         statusRegex = re.compile(
             (
-                "volume: (?P<volume>[0-9]+).*?"
+                "volume: (?P<volume>[0-9\\-]+).*?"
                 "repeat: (?P<repeat>[0-9]+).*?"
                 "random: (?P<random>[0-9]+).*?"
                 "single: (?P<single>[0-9]+).*?"
@@ -33,10 +33,10 @@ class mainThread (threading.Thread):
                 "state: (?P<state>\w+).*?"
                 "song: (?P<song>[0-9]+).*?"
                 "songid: (?P<songid>[0-9]+).*?"
-                "time: (?P<time>[0-9:]+).*?"
-                "elapsed: (?P<elapsed>[0-9\\.]+).*?"
-                "bitrate: (?P<bitrate>[0-9]+).*?"
-                "audio: (?P<audio>[0-9a-z:]+).*?"
+                # "time: (?P<time>[0-9:]+).*?"
+                # "elapsed: (?P<elapsed>[0-9\\.]+).*?"
+                # "bitrate: (?P<bitrate>[0-9]+).*?"
+                # "audio: (?P<audio>[0-9a-z:]+).*?"
                 "nextsong: (?P<nextsong>[0-9]+).*?"
                 "nextsongid: (?P<nextsongid>[0-9]+).*?"
             ),
@@ -62,18 +62,22 @@ class mainThread (threading.Thread):
             status = statusRegex.search(statusRaw).groupdict()
             result = ""
             # TODO replace this strings with icons
-            if status['state'] == "pause":
-                result = "paused {}%".format(status['volume'])
-            elif status['state'] == "stop":
-                result = "stoped {}%".format(status['volume'])
+            if status['state'] == "stop":
+                result = ""
+            elif status['state'] == "pause":
+                result = "paused {}% - ".format(status['volume'])
+                currentSongRaw = self.getResultOfCommand("currentsong")
+                currentSong = currentSongRegex.search(currentSongRaw).groupdict()
+                result += "{} - {}".format(
+                    currentSong['title'], currentSong['artist'])
             elif status['state'] == "play":
-                result = "playing {}%".format(status['volume'])
+                result = "playing {}% - ".format(status['volume'])
+                currentSongRaw = self.getResultOfCommand("currentsong")
+                currentSong = currentSongRegex.search(currentSongRaw).groupdict()
+                result += "{} - {}".format(
+                    currentSong['title'], currentSong['artist'])
             else:
                 result = "SHIT"
-
-            currentSongRaw = self.getResultOfCommand("currentsong")
-            currentSong = currentSongRegex.search(currentSongRaw).groupdict()
-            result += " - " + currentSong['title']
 
             if self.killed():
                 break
