@@ -53,9 +53,15 @@ class mainThread (threading.Thread):
             elif status == "Full":
                 result = ""
             elif status == "Charging":
-                result = str(round(chargeNow*100/chargeFull)) + "%"
+                result = (
+                    "^i(icons/xbm/bat_full_02.xbm) "
+                    "{}%".format(round(chargeNow*100/chargeFull))
+                )
             elif status == "Discharging":
-                result = str(round(chargeNow*100/chargeFull)) + "%"
+                result = (
+                    "^i(icons/xbm/bat_empty_02.xbm) "
+                    "{}%".format(round(chargeNow*100/chargeFull))
+                )
             else:
                 result = "Unmanaged battery status:" + status
 

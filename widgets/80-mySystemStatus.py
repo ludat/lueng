@@ -56,7 +56,9 @@ class mainThread (threading.Thread):
         free = round(d['free'] * WIDTH / d['total'])
 
         return (
-            "^fg(#CCCCCC)^r({}x1)^fg(#999999)^r({}x1)^fg()".format(used, free))
+            "^i(icons/xbm/mem.xbm) "
+            "^fg(#CCCCCC)^r({}x1)^fg(#999999)^r({}x1)^fg()".format(used, free)
+        )
 
     def killed(self):
         return self._killed.is_set()

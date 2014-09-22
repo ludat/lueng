@@ -65,17 +65,29 @@ class mainThread (threading.Thread):
             if status['state'] == "stop":
                 result = ""
             elif status['state'] == "pause":
-                result = "paused {}% - ".format(status['volume'])
                 currentSongRaw = self.getResultOfCommand("currentsong")
-                currentSong = currentSongRegex.search(currentSongRaw).groupdict()
-                result += "{} - {}".format(
-                    currentSong['title'], currentSong['artist'])
+                currentSong = currentSongRegex.search(
+                    currentSongRaw).groupdict()
+                result = (
+                    "^i(icons/xbm/pause.xbm) " +
+                    "{}% - {} - {}".format(
+                        status['volume'],
+                        currentSong['title'],
+                        currentSong['artist']
+                    )
+                )
             elif status['state'] == "play":
-                result = "playing {}% - ".format(status['volume'])
                 currentSongRaw = self.getResultOfCommand("currentsong")
-                currentSong = currentSongRegex.search(currentSongRaw).groupdict()
-                result += "{} - {}".format(
-                    currentSong['title'], currentSong['artist'])
+                currentSong = currentSongRegex.search(
+                    currentSongRaw).groupdict()
+                result = (
+                    "^i(icons/xbm/play.xbm) " +
+                    "{}% - {} - {}".format(
+                        status['volume'],
+                        currentSong['title'],
+                        currentSong['artist']
+                    )
+                )
             else:
                 result = "SHIT"
 

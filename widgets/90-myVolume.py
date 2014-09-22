@@ -43,9 +43,14 @@ class mainThread (threading.Thread):
             statusOutput = statusProc.stdout.read()
             d = stateRegex.search(statusOutput).groupdict()
             if d['mute'] == 'no':
-                result = str((int(d['left']) + int(d['left'])) // 2) + "%"
+                result = (
+                    "{}% ".format((int(d['left']) + int(d['left'])) // 2) +
+                    "^i(icons/xbm/spkr_01.xbm)"
+                )
             if d['mute'] == 'yes':
-                result = "muted"
+                result = (
+                    " ^i(icons/xbm/spkr_02.xbm)"
+                )
             if self.killed():
                 break
             self.updateContent(self.parse(result))
