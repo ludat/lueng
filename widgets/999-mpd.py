@@ -4,6 +4,7 @@ import threading
 
 import re
 import socket
+import time
 
 IS_SAFE = True
 NAME = 'mpdStatus'
@@ -18,11 +19,13 @@ class mainThread (threading.Thread):
         self.lastUpdate = "dsadwa"
         self._killed = threading.Event()
         self._killed.clear()
+        self.regex = {}
 
     def run(self):
-        statusRegex = re.compile(
+        self.regex['status'] = re.compile(
             (
-                "volume: (?P<volume>[0-9\\-]+).*?"
+                "[^\n]*?"
+                "volume: (?P<volume>[^\n]+).*?"
                 "repeat: (?P<repeat>[0-9]+).*?"
                 "random: (?P<random>[0-9]+).*?"
                 "single: (?P<single>[0-9]+).*?"
@@ -41,84 +44,101 @@ class mainThread (threading.Thread):
                 "nextsongid: (?P<nextsongid>[0-9]+).*?"
             ),
             re.DOTALL)
-        currentSongRegex = re.compile(
+        self.regex['currentsong'] = re.compile(
             (
+                "[^\n]*"
                 "file: (?P<file>[^\n]+).*?"
                 "Last-Modified: (?P<last_modified>[^\n]+).*?"
                 "Time: (?P<time>[^\n]+).*?"
                 "Artist: (?P<artist>[^\n]+).*?"
-                "Album: (?P<album>[^\n]+).*?"
-                "Title: (?P<title>[^\n]+).*?"
-                "Date: (?P<date>[^\n]+).*?"
-                "Disc: (?P<disc>[^\n]+).*?"
                 "AlbumArtist: (?P<albumartist>[^\n]+).*?"
+                "ArtistSort: (?P<albumsort>[^\n]+).*?"
+                "Title: (?P<title>[^\n]+).*?"
+                "Album: (?P<album>[^\n]+).*?"
+                "Track: (?P<track>[^\n]+).*?"
+                "Date: (?P<date>[^\n]+).*?"
+                "Genre: (?P<genre>[^\n]+).*?"
+                "Disc: (?P<disc>[^\n]+).*?"
+                "AlbumArtistSort: (?P<albumartistsort>[^\n]+).*?"
                 "Pos: (?P<pos>[^\n]+).*?"
                 "Id: (?P<id>[^\n]+).*?"
             ),
             re.DOTALL)
-
         while True:
-            statusRaw = self.getResultOfCommand("status")
-            status = statusRegex.search(statusRaw).groupdict()
+            status = self.getResultOfCommand("status")
             result = ""
-            # TODO replace this strings with icons
-            if status['state'] == "stop":
+            if 'error' in status:
+                result = status['error']
+            elif status['state'] == "stop":
                 result = ""
             elif status['state'] == "pause":
-                currentSongRaw = self.getResultOfCommand("currentsong")
-                currentSong = currentSongRegex.search(
-                    currentSongRaw).groupdict()
-                result = (
-                    "^i(icons/xbm/pause.xbm) " +
-                    "{}% - {} - {}".format(
-                        status['volume'],
-                        currentSong['title'],
-                        currentSong['artist']
+                currentSong = self.getResultOfCommand("currentsong")
+                if 'error' in currentSong:
+                    result = currentSong['error']
+                else:
+                    result = (
+                        "^i(icons/xbm/pause.xbm) " +
+                        "{}% - {} - {}".format(
+                            status['volume'],
+                            currentSong['title'],
+                            currentSong['artist']
+                        )
                     )
-                )
             elif status['state'] == "play":
-                currentSongRaw = self.getResultOfCommand("currentsong")
-                currentSong = currentSongRegex.search(
-                    currentSongRaw).groupdict()
-                result = (
-                    "^i(icons/xbm/play.xbm) " +
-                    "{}% - {} - {}".format(
-                        status['volume'],
-                        currentSong['title'],
-                        currentSong['artist']
+                currentSong = self.getResultOfCommand("currentsong")
+                if 'error' in currentSong:
+                    result = currentSong['error']
+                else:
+                    result = (
+                        "^i(icons/xbm/play.xbm) " +
+                        "{}% - {} - {}".format(
+                            status['volume'],
+                            currentSong['title'],
+                            currentSong['artist']
+                        )
                     )
-                )
             else:
                 result = "SHIT"
 
             if self.killed():
                 break
             self.updateContent(self.parse(result))
-            self.getResultOfCommand("idle")
+            self.idle()
         self.sock.close()
         self.inputThread.kill()
         return 0
 
-    def updateContent(self, string):
-        if string != self.lastUpdate:
-            self.mainQueue.put({'name': self.name, 'content': string})
-            self.lastUpdate = string
+    def idle(self):
+        while True:
+            data = None
+            try:
+                sock = self.connectTcp('localhost', 6600, timeout=None)
+                sock.sendall(bytes("idle\n", encoding="utf-8"))
+                data = ""
+                while True:
+                    data = sock.recv(4096).decode("utf-8")
+                    if data == "" or data.endswith("OK\n"):
+                        break
+                sock.close()
+            except:
+                time.sleep(2)
+            if data is not None:
+                return
 
     def getResultOfCommand(self, command):
-        sock = None
-        if command == "idle":
-            sock = self.connectTcp('localhost', 6600, timeout=None)
-        else:
-            sock = self.connectTcp('localhost', 6600)
-
+        sock = self.connectTcp('localhost', 6600)
         sock.sendall(bytes(command + "\n", encoding="utf-8"))
         data = ""
         while True:
-            data = sock.recv(4096).decode("utf-8")
+            data += sock.recv(4096).decode("utf-8")
             if data == "" or data.endswith("OK\n"):
                 break
         sock.close()
-        return data
+        reg = self.regex[command].search(data)
+        if reg is not None:
+            return reg.groupdict()
+        else:
+            return {'error': command + ': Match not found'}
 
     def connectTcp(self, host, port, timeout=2):
         try:
@@ -145,6 +165,11 @@ class mainThread (threading.Thread):
             raise err
         else:
             raise ConnectionError("getaddrinfo returns an empty list")
+
+    def updateContent(self, string):
+        if string != self.lastUpdate:
+            self.mainQueue.put({'name': self.name, 'content': string})
+            self.lastUpdate = string
 
     def parse(self, string):
         return string
