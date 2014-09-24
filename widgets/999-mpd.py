@@ -104,11 +104,10 @@ class mainThread (threading.Thread):
                 break
             self.updateContent(self.parse(result))
             self.idle()
-        self.sock.close()
-        self.inputThread.kill()
         return 0
 
     def idle(self):
+        "Wait until mpd is on and something has happened"
         while True:
             data = None
             try:
@@ -126,14 +125,19 @@ class mainThread (threading.Thread):
                 return
 
     def getResultOfCommand(self, command):
-        sock = self.connectTcp('localhost', 6600)
-        sock.sendall(bytes(command + "\n", encoding="utf-8"))
+        "Get the result of sending a command to the mpd server"
         data = ""
-        while True:
-            data += sock.recv(4096).decode("utf-8")
-            if data == "" or data.endswith("OK\n"):
-                break
-        sock.close()
+        try:
+            sock = self.connectTcp('localhost', 6600)
+            sock.sendall(bytes(command + "\n", encoding="utf-8"))
+            while True:
+                data += sock.recv(4096).decode("utf-8")
+                if data == "" or data.endswith("OK\n"):
+                    break
+            sock.close()
+        except:
+            return {'error': 'Connection error'}
+
         reg = self.regex[command].search(data)
         if reg is not None:
             return reg.groupdict()
@@ -141,6 +145,7 @@ class mainThread (threading.Thread):
             return {'error': command + ': Match not found'}
 
     def connectTcp(self, host, port, timeout=2):
+        "Abstraction for tcp connections"
         try:
             flags = socket.AI_ADDRCONFIG
         except AttributeError:
