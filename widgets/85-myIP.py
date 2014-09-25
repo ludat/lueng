@@ -45,12 +45,15 @@ class mainThread (threading.Thread):
     def updateContent(self, string):
         if string != self.lastUpdate:
             if string == "":
-                Proc = subprocess.Popen(
-                    ["festival", "--tts"],
-                    stdin=subprocess.PIPE,
-                    universal_newlines=True)
-                Proc.stdin.write("connection lost")
-                Proc.stdin.close()
+                try:
+                    Proc = subprocess.Popen(
+                        ["festival", "--tts"],
+                        stdin=subprocess.PIPE,
+                        universal_newlines=True)
+                    Proc.stdin.write("connection lost")
+                    Proc.stdin.close()
+                except:
+                    pass
             self.mainQueue.put({'name': self.name, 'content': string})
             self.lastUpdate = string
 
