@@ -18,6 +18,7 @@ class mainThread (threading.Thread):
         self.lastUpdate = "dsadwa"
         self._killed = threading.Event()
         self._killed.clear()
+        self.lastState = True
 
     def run(self):
         powerSupplyPath = ""
@@ -29,6 +30,7 @@ class mainThread (threading.Thread):
                 for power_supply in power_supplies:
                     if "BAT" in power_supply:
                         powerSupplyPath = batDir + power_supply
+                        self.lastState = True
                         break
                 else:
                     self.batteryNotFound()
@@ -63,7 +65,7 @@ class mainThread (threading.Thread):
                     "{}%".format(round(chargeNow*100/chargeFull))
                 )
             else:
-                result = "Unmanaged battery status:" + status
+                result = "Unmanaged battery status: " + status
 
             if self.killed():
                 break
@@ -76,8 +78,11 @@ class mainThread (threading.Thread):
             self.lastUpdate = string
 
     def batteryNotFound(self):
-        self.updateContent("No Bat")
-        time.sleep(1)
+        if self.lastState:
+            self.updateContent("No Bat")
+            time.sleep(10)
+            self.updateContent("")
+        self.lastState = False
 
     def killed(self):
         return self._killed.is_set()
