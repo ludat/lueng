@@ -2,7 +2,6 @@
 
 import threading
 
-import re
 import socket
 import time
 
@@ -19,51 +18,8 @@ class mainThread (threading.Thread):
         self.lastUpdate = "dsadwa"
         self._killed = threading.Event()
         self._killed.clear()
-        self.regex = {}
 
     def run(self):
-        self.regex['status'] = re.compile(
-            (
-                "[^\n]*?"
-                "volume: (?P<volume>[^\n]+).*?"
-                "repeat: (?P<repeat>[0-9]+).*?"
-                "random: (?P<random>[0-9]+).*?"
-                "single: (?P<single>[0-9]+).*?"
-                "consume: (?P<consume>[0-9]+).*?"
-                "playlist: (?P<playlist>[0-9]+).*?"
-                "playlistlength: (?P<playlistlenght>[0-9]+).*?"
-                "mixrampdb: (?P<mixrampdb>[0-9\\.]+).*?"
-                "state: (?P<state>\w+).*?"
-                "song: (?P<song>[0-9]+).*?"
-                "songid: (?P<songid>[0-9]+).*?"
-                # "time: (?P<time>[0-9:]+).*?"
-                # "elapsed: (?P<elapsed>[0-9\\.]+).*?"
-                # "bitrate: (?P<bitrate>[0-9]+).*?"
-                # "audio: (?P<audio>[0-9a-z:]+).*?"
-                "nextsong: (?P<nextsong>[0-9]+).*?"
-                "nextsongid: (?P<nextsongid>[0-9]+).*?"
-            ),
-            re.DOTALL)
-        self.regex['currentsong'] = re.compile(
-            (
-                "[^\n]*"
-                "file: (?P<file>[^\n]+).*?"
-                "Last-Modified: (?P<last_modified>[^\n]+).*?"
-                "Time: (?P<time>[^\n]+).*?"
-                "Artist: (?P<artist>[^\n]+).*?"
-                "AlbumArtist: (?P<albumartist>[^\n]+).*?"
-                "ArtistSort: (?P<albumsort>[^\n]+).*?"
-                "Title: (?P<title>[^\n]+).*?"
-                "Album: (?P<album>[^\n]+).*?"
-                "Track: (?P<track>[^\n]+).*?"
-                "Date: (?P<date>[^\n]+).*?"
-                "Genre: (?P<genre>[^\n]+).*?"
-                "Disc: (?P<disc>[^\n]+).*?"
-                "AlbumArtistSort: (?P<albumartistsort>[^\n]+).*?"
-                "Pos: (?P<pos>[^\n]+).*?"
-                "Id: (?P<id>[^\n]+).*?"
-            ),
-            re.DOTALL)
         while True:
             status = self.getResultOfCommand("status")
             result = ""
@@ -80,8 +36,8 @@ class mainThread (threading.Thread):
                         "^i(icons/xbm/pause.xbm) " +
                         "{}% - {} - {}".format(
                             status['volume'],
-                            currentSong['title'],
-                            currentSong['artist']
+                            currentSong['Title'],
+                            currentSong['Artist']
                         )
                     )
             elif status['state'] == "play":
@@ -93,8 +49,8 @@ class mainThread (threading.Thread):
                         "^i(icons/xbm/play.xbm) " +
                         "{}% - {} - {}".format(
                             status['volume'],
-                            currentSong['title'],
-                            currentSong['artist']
+                            currentSong['Title'],
+                            currentSong['Artist']
                         )
                     )
             else:
@@ -138,11 +94,16 @@ class mainThread (threading.Thread):
         except:
             return {'error': 'Connection error'}
 
-        reg = self.regex[command].search(data)
-        if reg is not None:
-            return reg.groupdict()
-        else:
-            return {'error': command + ': Match not found'}
+        return self.parseInput(data)
+
+    def parseInput(self, data):
+        result = {}
+        lines = data.splitlines()
+        for line in lines:
+            if ": " in line:
+                key, content = line.split(": ", 1)
+                result[key] = content
+        return result
 
     def connectTcp(self, host, port, timeout=2):
         "Abstraction for tcp connections"
