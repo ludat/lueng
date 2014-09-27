@@ -124,6 +124,7 @@ class WidgetsReloader (threading.Thread):
                 "--event", "modify,create,move,delete",
                 "-m", "."],
             stdout=subprocess.PIPE,
+            cwd="../",
             universal_newlines=True)
 
         while True:
