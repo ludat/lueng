@@ -7,22 +7,19 @@ import time
 import logging
 
 import os
-from os.path import isfile, exists
+from os.path import isfile
 import sys
 
 from importlib import import_module, reload
+import configparser
 
-SAFE_MODULES_ONLY = True
-USE_INOTIFY = True
-os.chdir(os.path.dirname(__file__) + "/widgets/")
-sys.path.append(os.getcwd())
+os.chdir(os.path.dirname(__file__))
+sys.path.append(os.getcwd() + "/widgets.wanted/")
 
-paths = os.getenv("PATH").split(":")
-for path in paths:
-    if exists(path+"/inotifywait"):
-        break
-else:
-    USE_INOTIFY = False
+
+CONFIG = configparser.ConfigParser()
+CONFIG.read('SB.conf')
+SAFE_MODULES_ONLY = CONFIG['ENGINE'].getboolean('SAFE_MODULES_ONLY', True)
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -32,7 +29,6 @@ formatter = logging.Formatter(
 # # Add FileHandler
 # now = datetime.datetime.now()
 # timeStamp = now.strftime("%Y-%m-%d_%H:%M:%S")
-# del datetime  # fuck you datetime
 #
 # fileLogHandler = logging.FileHandler("{}.statusBar.log".format(timeStamp))
 # fileLogHandler.name = 'File Logger'
@@ -102,54 +98,6 @@ class WidgetsInputHandler (threading.Thread):
 
             self.outputStream.write(Widget.parseToString())
             self.outputStream.flush()
-
-    def killed(self):
-        return self._killed.is_set()
-
-    def kill(self):
-        self._killed.set()
-
-
-class WidgetsReloader (threading.Thread):
-    "Monitor widget file and reload them if needed"
-    def __init__(self, Widget):
-        threading.Thread.__init__(self)
-        self._killed = threading.Event()
-        self._killed.clear()
-        self.name = 'WidgetsReloades'
-
-    def run(self):
-        inoProc = subprocess.Popen(
-            ["inotifywait",
-                "--event", "modify,create,move,delete",
-                "-m", "."],
-            stdout=subprocess.PIPE,
-            cwd="../",
-            universal_newlines=True)
-
-        while True:
-            if self.killed():
-                break
-            read = inoProc.stdout.readline()
-            folder, event, fileName = read[:-1].split(" ", 2)
-            if (folder != "./" or
-                    fileName[-3:] != ".py"):
-                continue
-
-            if event == "DELETE":
-                Widget.unloadModule(fileName)
-            elif event == "MOVED_FROM":
-                Widget.unloadModule(fileName)
-            elif event == "MOVED_TO":
-                Widget.loadModule(fileName)
-            elif event == "CREATE":
-                Widget.loadModule(fileName)
-            elif event == "MODIFY":
-                Widget.reloadModule(fileName)
-
-            Widget.startAll()
-
-        inoProc.kill()
 
     def killed(self):
         return self._killed.is_set()
@@ -246,13 +194,16 @@ class Widget:
 
     @classmethod
     def loadAllModules(cls):
-        allFiles = os.listdir("./")
-        modulesFiles = [f for f in allFiles if isfile(f)]
+        allFiles = os.listdir("widgets.wanted/")
+        logger.debug("Files: " + repr(allFiles))
+        modulesFiles = [f for f in allFiles if isfile("widgets.wanted/" + f)]
+        logger.debug("Module: " + repr(modulesFiles))
         for fileName in modulesFiles:
             cls.loadModule(fileName)
 
     @classmethod
     def loadModule(cls, fileName):
+        logger.debug("Loading: " + fileName)
         try:
             module = reload(import_module(fileName[:-3]))
             for i in range(len(cls.widgetsList)):
@@ -303,14 +254,9 @@ class Widget:
 
 
 def main():
-    widgetsMonitor = WidgetsReloader(Widget)
-
     Widget.loadAllModules()
 
     Widget.startAll()
-
-    if USE_INOTIFY:
-        widgetsMonitor.start()
 
     dzenProcess = subprocess.Popen(
         ["dzen2",
@@ -338,7 +284,6 @@ def main():
             time.sleep(2)
         except KeyboardInterrupt:
             logger.info("Exiting...")
-            widgetsMonitor.kill()
             widgetsInputHandler.kill()
             widgetsOutputHandler.kill()
             dzenProcess.terminate()
