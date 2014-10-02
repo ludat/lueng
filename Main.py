@@ -218,6 +218,8 @@ class Widget:
                 Widget.NotSafeException) as e:
             logger.info(
                 "{}: NOT Loaded Reason: {}".format(fileName, str(e)))
+        except Exception as e:
+            logger.warning(str(e))
 
     @classmethod
     def unloadModule(cls, fileName):
