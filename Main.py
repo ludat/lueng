@@ -11,6 +11,7 @@ from os.path import isfile
 import sys
 
 from importlib import import_module, reload
+from colors import colors
 import configparser
 
 os.chdir(os.path.dirname(__file__))
@@ -21,10 +22,14 @@ CONFIG = configparser.ConfigParser()
 CONFIG.read('SB.conf')
 SAFE_MODULES_ONLY = CONFIG['ENGINE'].getboolean('SAFE_MODULES_ONLY', True)
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('Engine')
 logger.setLevel(logging.DEBUG)
-formatter = logging.Formatter(
-    '%(levelname)s:%(name)s:%(message)s')
+formatterString = (
+    '{RESET}'
+    '{RED}%(levelname)-7s{RESET}|'
+    '{GREEN}{BOLD}%(name)s{RESET}|'
+    '%(message)s{RESET}'.format(**colors))
+formatter = logging.Formatter(formatterString)
 
 # # Add FileHandler
 # now = datetime.datetime.now()
@@ -195,9 +200,8 @@ class Widget:
     @classmethod
     def loadAllModules(cls):
         allFiles = os.listdir("widgets.wanted/")
-        logger.debug("Files: " + repr(allFiles))
         modulesFiles = [f for f in allFiles if isfile("widgets.wanted/" + f)]
-        logger.debug("Module: " + repr(modulesFiles))
+        logger.debug("Modules: " + repr(modulesFiles))
         for fileName in modulesFiles:
             cls.loadModule(fileName)
 
