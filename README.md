@@ -1,7 +1,7 @@
 My status bar engine
 ====================
 
-This is a status bar engine (surprise) made mainly for linux.  
+This is a status bar engine (surprise) made mainly for linux.
 
 It depends on (Arch packages):
 * python3
