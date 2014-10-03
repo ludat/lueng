@@ -4,7 +4,6 @@ My status bar engine
 This is a status bar engine (surprise) made mainly for linux.  
 
 It depends on (Arch packages):
-* inotify-tools
 * python3
 * dzen[2]
 
@@ -16,13 +15,13 @@ This projected is licensed under the terms of the MIT license.
 
 Although the engine doesn't need nothing anything else the individual widgets may.
 
-The modules marked safe are safe for me but maybe not for you. I will check widgets that I should work everywhere:  
+The modules marked safe are safe for me but maybe not for you. I will check widgets that I should work everywhere:
 - [x] datetime: It justs uses python standard module `time`.
 - [x] battery: Well you need a battery but if it's not there won't bother.
 - [ ] network: It isn't ready for anyone
 - [x] systemStatus: It just uses the `free` command so it should work everywhere
 - [x] IP: It uses the `ip` command so it should work everywhere. (if you have `festival` working it will tell you that you are disconnected)
-- [ ] volume: actualy it uses pulse audio so should rename it but if you use pulseaudio it should work
+- [ ] paVolume: obviusly it needs a PulseAudio server to connect to and since it uses the external command `pactl` it will crash if it's not installed
 - [x] mpd: of course you need mpd running but it won't say much if you don't
 
 You have been warned
