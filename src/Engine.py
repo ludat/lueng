@@ -1,114 +1,11 @@
-#!/bin/env python3
-
-import threading
 import queue
-import subprocess
-import time
 import logging
-
-import os
-from os.path import isfile
-import sys
-
 from importlib import import_module, reload
-from colors import colors
-import configparser
+from os.path import isfile
+import os
 
-os.chdir(os.path.dirname(__file__))
-sys.path.append(os.getcwd() + "/widgets.wanted/")
-
-
-CONFIG = configparser.ConfigParser()
-CONFIG.read('SB.conf')
-SAFE_MODULES_ONLY = CONFIG['ENGINE'].getboolean('SAFE_MODULES_ONLY', True)
-
-logger = logging.getLogger('Engine')
-logger.setLevel(logging.DEBUG)
-formatterString = (
-    '{RESET}'
-    '{RED}%(levelname)-7s{RESET}|'
-    '{GREEN}{BOLD}%(name)s{RESET}|'
-    '%(message)s{RESET}'.format(**colors))
-formatter = logging.Formatter(formatterString)
-
-# # Add FileHandler
-# now = datetime.datetime.now()
-# timeStamp = now.strftime("%Y-%m-%d_%H:%M:%S")
-#
-# fileLogHandler = logging.FileHandler("{}.statusBar.log".format(timeStamp))
-# fileLogHandler.name = 'File Logger'
-# fileLogHandler.level = logging.DEBUG
-# fileLogHandler.formatter = formatter
-# logger.addHandler(fileLogHandler)
-
-# Add ConsoleHandler
-consoleLogHandler = logging.StreamHandler()
-consoleLogHandler.name = 'Console Logger'
-consoleLogHandler.level = logging.DEBUG
-consoleLogHandler.formatter = formatter
-logger.addHandler(consoleLogHandler)
-
-
-class WidgetsOutputHandler (threading.Thread):
-    "Wait for the output from thread and send response to correct widget"
-    def __init__(self, Widget, inputStream):
-        threading.Thread.__init__(self)
-        self._killed = threading.Event()
-        self._killed.clear()
-        self.name = 'WidgetsOutputHandler'
-        self.inputStream = inputStream
-
-    def run(self):
-        while True:
-            if self.killed():
-                break
-            read = self.inputStream.readline()[:-1]
-            logger.debug("input:'" + read + "'")
-            threadName, string = read.split("@")
-            for widget in Widget.widgetsList:
-                if widget.name == threadName:
-                    if hasattr(widget, "inputQueue"):
-                        widget.inputQueue.put(string)
-                        continue
-
-        for widget in Widget.widgetsList:
-            if widget.inputQueue is not None:
-                widget.inputQueue.put("DEATH")
-
-    def killed(self):
-        return self._killed.is_set()
-
-    def kill(self):
-        self._killed.set()
-
-
-class WidgetsInputHandler (threading.Thread):
-    "Wait for input from queue, parse it and send it to output stream"
-    def __init__(self, Widget, outputStream):
-        threading.Thread.__init__(self)
-        self._killed = threading.Event()
-        self._killed.clear()
-        self.name = 'WidgetsInputHandler'
-        self.outputStream = outputStream
-
-    def run(self):
-        while True:
-            if self.killed():
-                break
-            item = Widget.mainQueue.get()
-            for widget in Widget.widgetsList:
-                if widget.name == item['name']:
-                    widget.updateContent(item['content'])
-                    continue
-
-            self.outputStream.write(Widget.parseToString())
-            self.outputStream.flush()
-
-    def killed(self):
-        return self._killed.is_set()
-
-    def kill(self):
-        self._killed.set()
+logger = logging.getLogger("Widget")
+SAFE_MODULES_ONLY = True
 
 
 class Widget:
@@ -129,7 +26,7 @@ class Widget:
 
         self.logger = logging.getLogger("Widget." + module.NAME)
         # self.logger.addHandler(fileLogHandler)
-        self.logger.addHandler(consoleLogHandler)
+        # self.logger.addHandler(consoleLogHandler)
 
         if SAFE_MODULES_ONLY:
             if module.IS_SAFE:
@@ -257,48 +154,3 @@ class Widget:
     class CollidingNamesException (Exception):
         "Can't have two modules with the same name"
         pass
-
-
-def main():
-    Widget.loadAllModules()
-
-    Widget.startAll()
-
-    dzenProcess = subprocess.Popen(
-        ["dzen2",
-            "-ta", "r",
-            "-bg", "#161616",
-            "-fn", "Terminus:size=8",
-            "-w", "1300",
-            "-x", "500",
-            "-e", "",
-            "-dock"],
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        universal_newlines=True)
-
-    widgetsInputHandler = WidgetsInputHandler(Widget, dzenProcess.stdin)
-
-    widgetsOutputHandler = WidgetsOutputHandler(Widget, dzenProcess.stdout)
-
-    widgetsInputHandler.start()
-
-    widgetsOutputHandler.start()
-
-    while True:
-        try:
-            time.sleep(2)
-        except KeyboardInterrupt:
-            logger.info("Exiting...")
-            widgetsInputHandler.kill()
-            widgetsOutputHandler.kill()
-            dzenProcess.terminate()
-            Widget.killAll()
-            return 0
-
-
-if __name__ == "__main__":
-    logger.debug("Program started")
-    logger.debug(os.getcwd())
-    main()
-    logger.warning("Main thread is dead!")
