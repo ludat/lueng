@@ -1,4 +1,6 @@
 import threading
+from Config import CONFIG
+CONFIG = CONFIG['INPUT_WIDGET']
 
 
 class WidgetsInputHandler (threading.Thread):
@@ -29,4 +31,3 @@ class WidgetsInputHandler (threading.Thread):
 
     def kill(self):
         self._killed.set()
-

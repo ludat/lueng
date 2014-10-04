@@ -1,52 +1,23 @@
 #!/bin/env python3
+import os
+import sys
+
+os.chdir(os.path.dirname(__file__) + "/../")
+sys.path.append(os.getcwd() + "/widgets.wanted/")
+
+import CustomLoggers
+from Config import CONFIG
+CONFIG = CONFIG['MAIN']
 
 import subprocess
 import time
 import logging
 
-import os
-import sys
-
-from colors import colors
-import configparser
-
 from Engine import Widget
 from WidgetsInputHandler import WidgetsInputHandler
 from WidgetsOutputHandler import WidgetsOutputHandler
 
-os.chdir(os.path.dirname(__file__) + "/../")
-sys.path.append(os.getcwd() + "/widgets.wanted/")
-
-
-CONFIG = configparser.ConfigParser()
-CONFIG.read('SB.conf')
-SAFE_MODULES_ONLY = CONFIG['ENGINE'].getboolean('SAFE_MODULES_ONLY', True)
-
-logger = logging.getLogger('Engine')
-logger.setLevel(logging.DEBUG)
-formatterString = (
-    '{RESET}'
-    '{RED}%(levelname)-7s{RESET}|'
-    '{GREEN}{BOLD}%(name)s{RESET}|'
-    '%(message)s{RESET}'.format(**colors))
-formatter = logging.Formatter(formatterString)
-
-# # Add FileHandler
-# now = datetime.datetime.now()
-# timeStamp = now.strftime("%Y-%m-%d_%H:%M:%S")
-#
-# fileLogHandler = logging.FileHandler("{}.statusBar.log".format(timeStamp))
-# fileLogHandler.name = 'File Logger'
-# fileLogHandler.level = logging.DEBUG
-# fileLogHandler.formatter = formatter
-# logger.addHandler(fileLogHandler)
-
-# Add ConsoleHandler
-consoleLogHandler = logging.StreamHandler()
-consoleLogHandler.name = 'Console Logger'
-consoleLogHandler.level = logging.DEBUG
-consoleLogHandler.formatter = formatter
-logger.addHandler(consoleLogHandler)
+logger = logging.getLogger('MAIN')
 
 
 def main():

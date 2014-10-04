@@ -1,4 +1,6 @@
 import threading
+from Config import CONFIG
+CONFIG = CONFIG['OUTPUT_WIDGET']
 
 
 class WidgetsOutputHandler (threading.Thread):

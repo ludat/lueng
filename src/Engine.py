@@ -3,9 +3,10 @@ import logging
 from importlib import import_module, reload
 from os.path import isfile
 import os
+from Config import CONFIG
+CONFIG = CONFIG['ENGINE']
 
-logger = logging.getLogger("Widget")
-SAFE_MODULES_ONLY = True
+logger = logging.getLogger("ENGINE")
 
 
 class Widget:
@@ -24,11 +25,9 @@ class Widget:
 
         self.inputQueue = queue.Queue()
 
-        self.logger = logging.getLogger("Widget." + module.NAME)
-        # self.logger.addHandler(fileLogHandler)
-        # self.logger.addHandler(consoleLogHandler)
+        self.logger = logging.getLogger("WIDGET")
 
-        if SAFE_MODULES_ONLY:
+        if CONFIG['SAFE_MODULES_ONLY']:
             if module.IS_SAFE:
                 self.thread = module.mainThread(
                     self.mainQueue,
