@@ -1,20 +1,21 @@
 #!/bin/env python3
 
 import threading
-import time
+import logging
 
+import time
 import subprocess
 import re
 
 IS_SAFE = True
 NAME = 'IP'
+logger = logging.getLogger('WIDGET')
 
 
 class mainThread (threading.Thread):
-    def __init__(self, mainQueue, inputQueue=None, logger=None):
+    def __init__(self, mainQueue, inputQueue=None):
         threading.Thread.__init__(self)
         self.name = NAME
-        self.logger = logger
         self.mainQueue = mainQueue
         self.lastUpdate = "dsadwa"
         self._killed = threading.Event()
@@ -65,7 +66,6 @@ class mainThread (threading.Thread):
 
 if __name__ == "__main__":
     import queue
-    import logging
 
     class TestInputThread(threading.Thread):
         def __init__(self, inputQueue):
@@ -83,8 +83,7 @@ if __name__ == "__main__":
 
     thread = mainThread(
         mainQueue,
-        inputQueue=inputQueue,
-        logger=logging.getLogger("main"))
+        inputQueue=inputQueue)
     thread.start()
     inputThread.start()
 

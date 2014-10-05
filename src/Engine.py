@@ -25,22 +25,18 @@ class Widget:
 
         self.inputQueue = queue.Queue()
 
-        self.logger = logging.getLogger("WIDGET")
-
         if CONFIG['SAFE_MODULES_ONLY']:
             if module.IS_SAFE:
                 self.thread = module.mainThread(
                     self.mainQueue,
-                    inputQueue=self.inputQueue,
-                    logger=self.logger)
+                    inputQueue=self.inputQueue)
             else:
                 raise Widget.NotSafeException(
                     "Unsafe thread in safe enviroment")
         else:
             self.thread = module.mainThread(
                 self.mainQueue,
-                inputQueue=self.inputQueue,
-                logger=self.logger)
+                inputQueue=self.inputQueue)
 
         for obj in self.NEEDED_INSIDE_THREAD:
             if not hasattr(self.thread, obj):
