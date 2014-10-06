@@ -1,6 +1,9 @@
 import threading
+import logging
 from Config import CONFIG
 CONFIG = CONFIG['INPUT_WIDGET']
+
+logger = logging.getLogger('INPUT_WIDGET')
 
 
 class WidgetsInputHandler (threading.Thread):

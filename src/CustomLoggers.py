@@ -40,6 +40,10 @@ logger = logging.getLogger('OUTPUT_WIDGET')
 logger.setLevel(logging.DEBUG)
 logger.addHandler(consoleLogHandler)
 
+logger = logging.getLogger('INPUT_SERVER')
+logger.setLevel(logging.DEBUG)
+logger.addHandler(consoleLogHandler)
+
 # # Add FileHandler
 # now = datetime.datetime.now()
 # timeStamp = now.strftime("%Y-%m-%d_%H:%M:%S")
