@@ -102,7 +102,7 @@ class InputThread (threading.Thread):
                 break
             item = self.inputQueue.get()
             logger.debug(
-                "MESSAGE RECIVED: {}", item)
+                "MESSAGE RECIVED: %s", item)
             if item == "clicked":
                 statusProc = subprocess.Popen(
                     ["pactl", "list", "sinks"],
