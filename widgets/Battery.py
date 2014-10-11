@@ -84,6 +84,7 @@ class mainThread (threading.Thread):
             time.sleep(10)
             self.updateContent("")
         self.lastState = False
+        time.sleep(1)
 
     def killed(self):
         return self._killed.is_set()
