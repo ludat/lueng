@@ -27,16 +27,37 @@ class InputServer(threading.Thread):
         @self.decorate
         def kill(self):
             logger.warning("I should be dead :D")
-            self.kill()
-            return "I'm dead\n"
+            return "Someone somewhere died\n"
+
+        @self.decorate
+        def ping(self):
+            return "pong\n"
 
         @self.decorate
         def list(self):
             resp = ""
-            logger.debug("inside list command")
             for widget in self.Widget.widgetsList:
-                resp += widget.name + "\n"
+                resp += "{}:{}:{}\n".format(
+                    widget.name,
+                    widget.fileName,
+                    widget.thread.is_alive())
             return resp
+
+        @self.decorate
+        def reload(self):
+            return "Not implemented yet\n"
+
+        @self.decorate
+        def load(self):
+            return "Not implemented yet\n"
+
+        @self.decorate
+        def disable(self):
+            return "Not implemented yet\n"
+
+        @self.decorate
+        def enable(self):
+            return "Not implemented yet\n"
 
     def decorate(self, func):
         self.commands[func.__name__] = func
@@ -51,7 +72,7 @@ class InputServer(threading.Thread):
         server = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         server.bind("/tmp/SB")
         server.listen(5)
-        logger.info("Listening...")
+        logger.info("Listening... ")
 
         while True:
             conn, address = server.accept()
@@ -74,8 +95,11 @@ class InputServer(threading.Thread):
         response = ""
         for command in commands:
             c = command.split(" ", 1)
-            logger.debug("Function: %s", c[0])
-            response += self.commands[c[0]](self)
+            try:
+                response += self.commands[c[0]](self)
+            except KeyError:
+                response += "command '%s' not found\n".format(c[0])
+                logger.warning("command '%s' not found", c[0])
 
         try:
             conn.sendall(bytes(response, encoding="utf-8"))
