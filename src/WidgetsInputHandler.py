@@ -15,12 +15,18 @@ class WidgetsInputHandler (threading.Thread):
         self.Widget = Widget
         self.name = 'WidgetsInputHandler'
         self.outputStream = outputStream
+        logger.info("Initialized")
 
     def run(self):
+        logger.info("Started")
         while True:
             if self.killed():
                 break
             item = self.Widget.mainQueue.get()
+            logger.debug(
+                "From: %s\n\tContent: %s",
+                item['name'],
+                repr(item['content']))
             for widget in self.Widget.widgetsList:
                 if widget.name == item['name']:
                     widget.updateContent(item['content'])

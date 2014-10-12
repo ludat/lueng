@@ -1,6 +1,9 @@
 import threading
+import logging
 from Config import CONFIG
 CONFIG = CONFIG['OUTPUT_WIDGET']
+
+logger = logging.getLogger('INPUT_WIDGET')
 
 
 class WidgetsOutputHandler (threading.Thread):
@@ -12,13 +15,15 @@ class WidgetsOutputHandler (threading.Thread):
         self.Widget = Widget
         self.name = 'WidgetsOutputHandler'
         self.inputStream = inputStream
+        logger.info("Initialized")
 
     def run(self):
+        logger.info("Started")
         while True:
             if self.killed():
                 break
             read = self.inputStream.readline()[:-1]
-            # logger.debug("input:'" + read + "'")
+            logger.debug("input: %s", repr(read))
             threadName, string = read.split("@")
             for widget in self.Widget.widgetsList:
                 if widget.name == threadName:
