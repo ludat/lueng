@@ -1,6 +1,7 @@
 #!/bin/python3
 
 import logging
+from Config import CONFIG
 from colors import colors
 
 formatterString = (
@@ -13,35 +14,44 @@ formatter = logging.Formatter(formatterString)
 # Add ConsoleHandler
 consoleLogHandler = logging.StreamHandler()
 consoleLogHandler.name = 'Console Logger'
-consoleLogHandler.level = logging.DEBUG
 consoleLogHandler.formatter = formatter
 
 logger = logging.getLogger('MAIN')
-logger.setLevel(logging.DEBUG)
-logger.addHandler(consoleLogHandler)
-
-logger = logging.getLogger('CONFIG')
-logger.setLevel(logging.DEBUG)
+logger.setLevel(CONFIG['MAIN']['LOGGING_LEVEL'])
 logger.addHandler(consoleLogHandler)
 
 logger = logging.getLogger('ENGINE')
-logger.setLevel(logging.DEBUG)
-logger.addHandler(consoleLogHandler)
-
-logger = logging.getLogger('WIDGET')
-logger.setLevel(logging.DEBUG)
+logger.setLevel(CONFIG['ENGINE']['LOGGING_LEVEL'])
 logger.addHandler(consoleLogHandler)
 
 logger = logging.getLogger('INPUT_WIDGET')
-logger.setLevel(logging.DEBUG)
+logger.setLevel(CONFIG['INPUT_WIDGET']['LOGGING_LEVEL'])
 logger.addHandler(consoleLogHandler)
 
 logger = logging.getLogger('OUTPUT_WIDGET')
-logger.setLevel(logging.DEBUG)
+logger.setLevel(CONFIG['OUTPUT_WIDGET']['LOGGING_LEVEL'])
 logger.addHandler(consoleLogHandler)
 
 logger = logging.getLogger('INPUT_SERVER')
-logger.setLevel(logging.DEBUG)
+logger.setLevel(CONFIG['INPUT_SERVER']['LOGGING_LEVEL'])
+logger.addHandler(consoleLogHandler)
+
+
+formatterString = (
+    '{RESET}'
+    '{RED}{BOLD}%(levelname)-7s{RESET}:'
+    '{GREEN}{BOLD}W{RESET}:'
+    '{YELLOW}{BOLD}%(threadName)-15s{RESET}:'
+    '%(message)s{RESET}'.format(**colors))
+formatter = logging.Formatter(formatterString)
+
+# Add ConsoleHandler
+consoleLogHandler = logging.StreamHandler()
+consoleLogHandler.name = 'Console Logger'
+consoleLogHandler.formatter = formatter
+
+logger = logging.getLogger('WIDGET')
+logger.setLevel(CONFIG['WIDGET']['LOGGING_LEVEL'])
 logger.addHandler(consoleLogHandler)
 
 # # Add FileHandler
@@ -53,4 +63,3 @@ logger.addHandler(consoleLogHandler)
 # fileLogHandler.level = logging.DEBUG
 # fileLogHandler.formatter = formatter
 # logger.addHandler(fileLogHandler)
-
