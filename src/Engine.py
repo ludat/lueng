@@ -18,10 +18,10 @@ class Widget:
 
     def __init__(self, module, fileName):
         "Initialize new from module and add it to the widgetsList"
-        for obj in self.NEEDED:
-            if not hasattr(module, obj):
+        for need in self.NEEDED:
+            if not hasattr(module, need):
                 raise Widget.BadInitializationException(
-                    "Missing object in module: "+obj)
+                    "Missing object in module: " + need)
 
         self.inputQueue = queue.Queue()
 
@@ -38,10 +38,10 @@ class Widget:
                 self.mainQueue,
                 inputQueue=self.inputQueue)
 
-        for obj in self.NEEDED_INSIDE_THREAD:
-            if not hasattr(self.thread, obj):
+        for need in self.NEEDED_INSIDE_THREAD:
+            if not hasattr(self.thread, need):
                 raise Widget.BadInitializationException(
-                    "Missing object in main thread: "+obj)
+                    "Missing object in main thread: " + need)
 
         self.name = module.NAME
         self.fileName = fileName
