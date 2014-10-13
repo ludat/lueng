@@ -22,7 +22,7 @@ logger = logging.getLogger('MAIN')
 
 
 def main():
-    Widget.loadAllModules()
+    Widget.loadAllWidgets()
 
     Widget.startAll()
 

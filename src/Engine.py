@@ -10,7 +10,7 @@ logger = logging.getLogger("ENGINE")
 
 
 class Widget:
-    "Instances of this class are widgets and some class method "
+    "Instances of this class are widgets and some class methods"
     widgetsList = []
     mainQueue = queue.Queue()
     NEEDED = ("mainThread", "IS_SAFE", "NAME",)
@@ -43,11 +43,8 @@ class Widget:
                 raise Widget.BadInitializationException(
                     "Missing object in main thread: "+obj)
 
-        self.name = self.thread.name
+        self.name = module.NAME
         self.fileName = fileName
-        for widget in self.widgetsList:
-            if self.name == widget.name or self.fileName == widget.fileName:
-                raise Widget.CollidingNamesException()
         self.content = "Nothing yet"
 
     def updateContent(self, newContent):
@@ -90,32 +87,85 @@ class Widget:
         return (string+"\n")
 
     @classmethod
-    def loadAllModules(cls):
+    def loadAllWidgets(cls):
+        modules = []
         allFiles = os.listdir("widgets.wanted/")
-        modulesFiles = [f for f in allFiles if isfile("widgets.wanted/" + f)]
+        modulesFiles = [
+            f[:-3] for f in allFiles if isfile("widgets.wanted/" + f)]
         logger.debug("Modules: " + repr(modulesFiles))
         for fileName in modulesFiles:
-            cls.loadModule(fileName)
+            modules.append(
+                cls._loadModuleByFileName(fileName))
+
+        for module, fileName in modules:
+            if module is None:
+                return False
+            try:
+                widget = cls(module, fileName)
+                cls._addToList(widget)
+            except Exception as e:
+                logger.error(repr(e))
 
     @classmethod
-    def loadModule(cls, fileName):
-        logger.debug("Loading: " + fileName)
+    def loadWidget(cls, WidgetName):
+        module, fileName = cls._loadModuleByWidgetName(WidgetName)
+        if module is None:
+            return False
         try:
-            module = reload(import_module(fileName[:-3]))
-            for i in range(len(cls.widgetsList)):
-                if cls.widgetsList[i].fileName > fileName:
-                    cls.widgetsList.insert(i, cls(module, fileName))
-                    break
-            else:
-                cls.widgetsList.append(cls(module, fileName))
-        except (ImportError,
-                Widget.CollidingNamesException,
-                Widget.BadInitializationException,
-                Widget.NotSafeException) as e:
-            logger.info(
-                "{}: NOT Loaded Reason: {}".format(fileName, str(e)))
+            widget = cls(module, fileName)
         except Exception as e:
-            logger.warning(str(e))
+            logger.error(repr(e))
+            return False
+        return cls._addToList(widget)
+
+    @classmethod
+    def _addToList(cls, widget):
+        if widget.fileName in [w.fileName for w in cls.widgetsList]:
+            logger.info("Colliding fileName, not loading")
+            return
+
+        if widget.name in [w.name for w in cls.widgetsList]:
+            logger.info("Colliding name, not loading")
+            return
+
+        for i in range(len(cls.widgetsList)):
+            if cls.widgetsList[i].fileName > widget.fileName:
+                cls.widgetsList.insert(i, widget)
+                break
+        else:
+            cls.widgetsList.append(widget)
+
+    @classmethod
+    def _loadModuleByWidgetName(cls, widgetName):
+        "This shit should load widgets by widget name"
+        modulesList = []
+        allFiles = os.listdir("widgets.wanted/")
+        modulesFiles = [
+            f[:-3] for f in allFiles if isfile("widgets.wanted/" + f)]
+        logger.debug("Modules: " + repr(modulesFiles))
+        for fileName in modulesFiles:
+            modulesList.append(
+                cls._loadWidgetByFileName(fileName))
+        for module, fileName in modulesList:
+            if hasattr(module, 'NAME'):
+                if module.NAME == widgetName:
+                    return (module, fileName)
+        else:
+            return (None, "")
+
+    @classmethod
+    def _loadModuleByFileName(cls, fileName):
+        "This shit should load widgets by file name"
+        try:
+            module = reload(import_module(fileName))
+        except ImportError as e:
+            logger.info(
+                "{}: NOT Loaded Reason: {}".format(fileName, repr(e)))
+            return (None, "")
+        except Exception as e:
+            logger.critical(str(e))
+            return (None, "")
+        return (module, fileName)
 
     @classmethod
     def unloadModule(cls, fileName):
@@ -130,10 +180,6 @@ class Widget:
     def reloadModule(cls, fileName):
         cls.unloadModule(fileName)
         cls.loadModule(fileName)
-
-    @classmethod
-    def debug(cls, word):
-        logger.debug(word + ":" + str([f.fileName for f in cls.widgetsList]))
 
     @staticmethod
     class NotSafeException (Exception):
