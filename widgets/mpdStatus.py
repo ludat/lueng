@@ -17,6 +17,7 @@ class mainThread (threading.Thread):
         self.name = NAME
         self.mainQueue = mainQueue
         self.lastUpdate = "dsadwa"
+        self.wasWorking = True
         self._killed = threading.Event()
         self._killed.clear()
 
@@ -93,7 +94,11 @@ class mainThread (threading.Thread):
                     break
             sock.close()
         except:
-            return {'error': 'Connection error'}
+            if self.wasWorking:
+                return {'error': 'Connection error'}
+            else:
+                time.sleep(2)
+                return {'error': ''}
 
         return self.parseInput(data)
 
