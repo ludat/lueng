@@ -51,6 +51,16 @@ class Widget:
         "Update the actual content with some new content sent by the thread"
         self.content = newContent
 
+    def pause(self):
+        "pause this thread"
+        self.thread.pause()
+        logger.info("Thread '" + self.name + "' paused")
+
+    def unpause(self):
+        "unpause this thread"
+        self.thread.unpause()
+        logger.info("Thread '" + self.name + "' unpaused")
+
     def kill(self):
         "Kill this thread"
         self.thread.kill()
@@ -60,19 +70,6 @@ class Widget:
         "Start this thread"
         self.thread.start()
         logger.info("Thread '" + self.name + "' started")
-
-    @classmethod
-    def startAll(cls):
-        "Start all threads from all instances of Widget class"
-        for thread in cls.widgetsList:
-            if not thread.thread.is_alive():
-                thread.start()
-
-    @classmethod
-    def killAll(cls):
-        "Kill all threads from all instances of Widget class"
-        for thread in cls.widgetsList:
-            thread.kill()
 
     @classmethod
     def parseToString(cls, separator=" < "):
@@ -85,6 +82,37 @@ class Widget:
                 else:
                     string = thread.content + separator + string
         return (string+"\n")
+
+    @classmethod
+    def startAllWidgets(cls):
+        "Start all threads from all instances of Widget class"
+        for widget in cls.widgetsList:
+            if not widget.thread.is_alive():
+                widget.start()
+
+    @classmethod
+    def startWidget(cls, widgetName):
+        for widget in cls.WidgetsList:
+            if widget.name == widgetName:
+                widget.start()
+                return True
+        else:
+            return False
+
+    @classmethod
+    def killAllWidgets(cls):
+        "Kill all threads from all instances of Widget class"
+        for widget in cls.widgetsList:
+            widget.kill()
+
+    @classmethod
+    def killWidget(cls, widgetName):
+        for widget in cls.WidgetsList:
+            if widget.name == widgetName:
+                widget.kill()
+                return True
+        else:
+            return False
 
     @classmethod
     def loadAllWidgets(cls):
@@ -117,6 +145,33 @@ class Widget:
             logger.error(repr(e))
             return False
         return cls._addToList(widget)
+
+    @classmethod
+    def unloadModule(cls, fileName):
+        "Kill a thread and remove it from widgetsList"
+        for i in range(len(cls.widgetsList)):
+            if cls.widgetsList[i].fileName == fileName:
+                cls.widgetsList[i].kill()
+                del cls.widgetsList[i]
+                break
+
+    @classmethod
+    def pauseWidget(cls, widgetName):
+        for widget in cls.WidgetsList:
+            if widget.name == widgetName:
+                widget.pause()
+                return True
+        else:
+            return False
+
+    @classmethod
+    def unpauseWidget(cls, widgetName):
+        for widget in cls.WidgetsList:
+            if widget.name == widgetName:
+                widget.unpause()
+                return True
+        else:
+            return False
 
     @classmethod
     def _addToList(cls, widget):
@@ -166,15 +221,6 @@ class Widget:
             logger.critical(str(e))
             return (None, "")
         return (module, fileName)
-
-    @classmethod
-    def unloadModule(cls, fileName):
-        "Kill a thread and remove it from widgetsList"
-        for i in range(len(cls.widgetsList)):
-            if cls.widgetsList[i].fileName == fileName:
-                cls.widgetsList[i].kill()
-                del cls.widgetsList[i]
-                break
 
     @classmethod
     def reloadModule(cls, fileName):

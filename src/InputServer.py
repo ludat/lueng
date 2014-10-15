@@ -5,8 +5,8 @@ import os
 
 import threading
 import logging
-# from Config import CONFIG
-# CONFIG = CONFIG['INPUT_WIDGET']
+from Config import CONFIG
+CONFIG = CONFIG['INPUT_WIDGET']
 
 logger = logging.getLogger('INPUT_SERVER')
 
@@ -20,44 +20,72 @@ class InputServer(threading.Thread):
         self.Widget = Widget
         self.name = 'SocketInputServer'
         self.commands = {}
+        self.createCommandsList()
 
-        # I think the best way to implement a command list is a dictionary of
-        # functions, but I don't want them to be in the class global scope
-        # and this is an excellent opportunity to use decorators
+    def createCommandsList(self):
+        """
+        I think the best way to implement a command list is a dictionary of
+        functions, but I don't want them to be in the class global scope
+        and this is an excellent opportunity to use decorators
+        """
         @self.decorate
-        def kill(self):
-            logger.warning("I should be dead :D")
-            return "Someone somewhere died\n"
+        def start(self, args, opt):
+            "start a loaded widget by widget name"
+            widget = args[0]
+            if self.Widget.start(widget):
+                return "Widget started"
+            else:
+                return "Widget not started because of reasons"
 
         @self.decorate
-        def ping(self):
+        def load(self, args, opt):
+            "load a widget without starting it"
+            widget = args[0]
+            if self.Widget.loadWidget(widget):
+                return "Widget loaded"
+            else:
+                return "Widget not loaded because of reasons"
+
+        @self.decorate
+        def reload(self, args, opt):
+            "kill and load a widget but without starting it"
+            widget = args[0]
+            try:
+                self.Widget.kill(widget)
+                self.Widget.loadWidget(widget)
+                return "Widget reloaded"
+            except Exception:
+                return "Widget not reloaded because of reasons"
+
+        @self.decorate
+        def purge(self, args, opt):
+            "check if a widget still exists in the fs if not kill it"
+            pass
+
+        @self.decorate
+        def pause(self, args, opt):
+            "pause a widget without killing it (the widget can refuse this)"
+            pass
+
+        @self.decorate
+        def unpause(self, args, opt):
+            "unpause a widget (the widget can refuse this)"
+            pass
+
+        @self.decorate
+        def ping(self, args, opt):
+            "the server will respond pong just to say its alive"
             return "pong\n"
 
         @self.decorate
-        def list(self):
-            resp = ""
-            for widget in self.Widget.widgetsList:
-                resp += "{}:{}:{}\n".format(
-                    widget.name,
-                    widget.fileName,
-                    widget.thread.is_alive())
-            return resp
-
-        @self.decorate
-        def reload(self):
-            return "Not implemented yet\n"
-
-        @self.decorate
-        def load(self):
-            return "Not implemented yet\n"
-
-        @self.decorate
-        def disable(self):
-            return "Not implemented yet\n"
-
-        @self.decorate
-        def enable(self):
-            return "Not implemented yet\n"
+        def help(self, args, opt):
+            "print the general help or specific to a command (help [cmd])"
+            cmd = args[0]
+            try:
+                return self.commands[cmd].__doc__
+            except KeyError:
+                logger.warning("command '%s' not found", cmd)
+                return ("command '%s' not found".format(cmd))
 
     def decorate(self, func):
         self.commands[func.__name__] = func
@@ -83,7 +111,7 @@ class InputServer(threading.Thread):
         os.remove("/tmp/SB")
 
     def handle(self, conn, address):
-        # This will be very close to the mpd protocol
+        "This will be very close to the mpd protocol"
         ret = True
         try:
             data = conn.recv(1024).decode('utf-8')
@@ -92,14 +120,15 @@ class InputServer(threading.Thread):
             logger.warning("recv failed")
 
         commands = data.splitlines()
+        logger.debug("commands: %s", commands)
         response = ""
         for command in commands:
-            c = command.split(" ", 1)
+            cmd, args, opt = self.parseInput(command)
             try:
-                response += self.commands[c[0]](self)
+                response += self.commands[cmd](self, args, opt)
             except KeyError:
-                response += "command '%s' not found\n".format(c[0])
-                logger.warning("command '%s' not found", c[0])
+                response += "command {} not found\n".format(repr(cmd))
+                logger.warning("command '%s' not found", repr(cmd))
 
         try:
             conn.sendall(bytes(response, encoding="utf-8"))
@@ -108,6 +137,20 @@ class InputServer(threading.Thread):
             logger.warning("send failed")
         conn.close()
         return ret
+
+    def parseInput(self, input):
+        """
+        parse the input string
+        returns a tupple with
+        string: the command issued
+        array: with the arguments
+        opt: dictionary with pairs option: value
+        """
+        input = str(input)
+        if " " not in input:
+            return (input, [], {})
+        splitted = input.split(" ")
+        return (splitted[0], splitted[1:], {})
 
     def killed(self):
         return self._killed.is_set()

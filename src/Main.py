@@ -24,7 +24,7 @@ logger = logging.getLogger('MAIN')
 def main():
     Widget.loadAllWidgets()
 
-    Widget.startAll()
+    Widget.startAllWidgets()
 
     dzenProcess = subprocess.Popen(
         ["dzen2",
@@ -59,7 +59,7 @@ def main():
             widgetsOutputHandler.kill()
             inputServer.kill()
             dzenProcess.terminate()
-            Widget.killAll()
+            Widget.killAllWidgets()
             return 0
 
 
