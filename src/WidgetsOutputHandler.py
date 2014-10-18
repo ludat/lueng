@@ -24,9 +24,9 @@ class WidgetsOutputHandler (threading.Thread):
                 break
             read = self.inputStream.readline()[:-1]
             logger.debug("input: %s", repr(read))
-            threadName, string = read.split("@")
+            threadCode, string = read.split("@")
             for widget in self.Widget.widgetsList:
-                if widget.name == threadName:
+                if widget.codeName == threadCode:
                     if hasattr(widget, "inputQueue"):
                         widget.inputQueue.put(string)
                         continue

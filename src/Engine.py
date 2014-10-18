@@ -1,6 +1,7 @@
 import queue
 import logging
 from importlib import import_module, reload
+from random import shuffle
 from os.path import isfile
 import os
 from Config import CONFIG
@@ -16,7 +17,7 @@ class Widget:
     NEEDED = ("mainThread", "IS_SAFE", "NAME",)
     NEEDED_INSIDE_THREAD = ("name", "kill", "run",)
 
-    def __init__(self, module, fileName):
+    def __init__(self, module, codeName):
         "Initialize new from module and add it to the widgetsList"
         for need in self.NEEDED:
             if not hasattr(module, need):
@@ -25,9 +26,12 @@ class Widget:
 
         self.inputQueue = queue.Queue()
 
+        self.codeName = codeName
+
         if CONFIG['SAFE_MODULES_ONLY']:
             if module.IS_SAFE:
                 self.thread = module.mainThread(
+                    self.codeName,
                     self.mainQueue,
                     inputQueue=self.inputQueue)
             else:
@@ -35,6 +39,7 @@ class Widget:
                     "Unsafe thread in safe enviroment")
         else:
             self.thread = module.mainThread(
+                self.codeName,
                 self.mainQueue,
                 inputQueue=self.inputQueue)
 
@@ -44,7 +49,7 @@ class Widget:
                     "Missing object in main thread: " + need)
 
         self.name = module.NAME
-        self.fileName = fileName
+        self.fileName = module.__file__
         self.content = "Nothing yet"
 
     def updateContent(self, newContent):
@@ -82,6 +87,24 @@ class Widget:
                 else:
                     string = thread.content + separator + string
         return (string+"\n")
+
+    @classmethod
+    def getNewId(cls):
+        chars = list(map(chr, range(97, 123)))
+        shuffle(chars)
+        chars1 = chars.copy()
+        shuffle(chars)
+        chars2 = chars.copy()
+        shuffle(chars)
+        chars3 = chars.copy()
+        for char1 in chars1:
+            for char2 in chars2:
+                for char3 in chars3:
+                    code = char1 + char2 + char3
+                    if code not in [w.codeName for w in cls.widgetsList]:
+                        return code
+        else:
+            raise Exception("Couldn't find an appropiate code")
 
     @classmethod
     def startAllWidgets(cls):
@@ -125,22 +148,22 @@ class Widget:
             modules.append(
                 cls._loadModuleByFileName(fileName))
 
-        for module, fileName in modules:
+        for module in modules:
             if module is None:
                 return False
             try:
-                widget = cls(module, fileName)
+                widget = cls(module, cls.getNewId())
                 cls._addToList(widget)
             except Exception as e:
                 logger.error(repr(e))
 
     @classmethod
-    def loadWidget(cls, WidgetName):
-        module, fileName = cls._loadModuleByWidgetName(WidgetName)
+    def loadWidget(cls, fileName):
+        module = cls._loadModuleByFileName(fileName)
         if module is None:
             return False
         try:
-            widget = cls(module, fileName)
+            widget = cls(module, cls.getNewId())
         except Exception as e:
             logger.error(repr(e))
             return False
@@ -175,12 +198,8 @@ class Widget:
 
     @classmethod
     def _addToList(cls, widget):
-        if widget.fileName in [w.fileName for w in cls.widgetsList]:
-            logger.info("Colliding fileName, not loading")
-            return
-
-        if widget.name in [w.name for w in cls.widgetsList]:
-            logger.info("Colliding name, not loading")
+        if widget.codeName in [w.codeName for w in cls.widgetsList]:
+            logger.info("Colliding code name, not loading")
             return
 
         for i in range(len(cls.widgetsList)):
@@ -191,24 +210,6 @@ class Widget:
             cls.widgetsList.append(widget)
 
     @classmethod
-    def _loadModuleByWidgetName(cls, widgetName):
-        "This shit should load widgets by widget name"
-        modulesList = []
-        allFiles = os.listdir("widgets.wanted/")
-        modulesFiles = [
-            f[:-3] for f in allFiles if isfile("widgets.wanted/" + f)]
-        logger.debug("Modules: " + repr(modulesFiles))
-        for fileName in modulesFiles:
-            modulesList.append(
-                cls._loadWidgetByFileName(fileName))
-        for module, fileName in modulesList:
-            if hasattr(module, 'NAME'):
-                if module.NAME == widgetName:
-                    return (module, fileName)
-        else:
-            return (None, "")
-
-    @classmethod
     def _loadModuleByFileName(cls, fileName):
         "This shit should load widgets by file name"
         try:
@@ -216,16 +217,11 @@ class Widget:
         except ImportError as e:
             logger.info(
                 "{}: NOT Loaded Reason: {}".format(fileName, repr(e)))
-            return (None, "")
+            return None
         except Exception as e:
             logger.critical(str(e))
-            return (None, "")
-        return (module, fileName)
-
-    @classmethod
-    def reloadModule(cls, fileName):
-        cls.unloadModule(fileName)
-        cls.loadModule(fileName)
+            return None
+        return module
 
     @staticmethod
     class NotSafeException (Exception):

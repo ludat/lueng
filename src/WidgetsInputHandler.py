@@ -24,11 +24,12 @@ class WidgetsInputHandler (threading.Thread):
                 break
             item = self.Widget.mainQueue.get()
             logger.debug(
-                "From: %s\n\tContent: %s",
+                "From: %s (%s)\n\tContent: %s",
                 item['name'],
+                item['codeName'],
                 repr(item['content']))
             for widget in self.Widget.widgetsList:
-                if widget.name == item['name']:
+                if widget.codeName == item['codeName']:
                     widget.updateContent(item['content'])
                     continue
 
