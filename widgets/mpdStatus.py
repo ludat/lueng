@@ -12,14 +12,15 @@ logger = logging.getLogger('WIDGET')
 
 
 class mainThread (threading.Thread):
-    def __init__(self, mainQueue, inputQueue=None):
+    def __init__(self, codeName, mainQueue, inputQueue=None):
         threading.Thread.__init__(self)
         self.name = NAME
+        self.codeName = codeName
         self.mainQueue = mainQueue
         self.lastUpdate = "dsadwa"
-        self.wasWorking = True
         self._killed = threading.Event()
         self._killed.clear()
+        self.wasWorking = True
 
     def run(self):
         while True:
@@ -140,7 +141,10 @@ class mainThread (threading.Thread):
 
     def updateContent(self, string):
         if string != self.lastUpdate:
-            self.mainQueue.put({'name': self.name, 'content': string})
+            self.mainQueue.put({
+                'name': self.name,
+                'codeName': self.codeName,
+                'content': string})
             self.lastUpdate = string
 
     def parse(self, string):

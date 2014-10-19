@@ -13,9 +13,10 @@ logger = logging.getLogger('WIDGET')
 
 
 class mainThread (threading.Thread):
-    def __init__(self, mainQueue, inputQueue=None):
+    def __init__(self, codeName, mainQueue, inputQueue=None):
         threading.Thread.__init__(self)
         self.name = NAME
+        self.codeName = codeName
         self.mainQueue = mainQueue
         self.lastUpdate = "dsadwa"
         self._killed = threading.Event()
@@ -55,7 +56,10 @@ class mainThread (threading.Thread):
                     Proc.stdin.close()
                 except:
                     pass
-            self.mainQueue.put({'name': self.name, 'content': string})
+            self.mainQueue.put({
+                'name': self.name,
+                'codeName': self.codeName,
+                'content': string})
             self.lastUpdate = string
 
     def killed(self):
