@@ -12,13 +12,13 @@ logger = logging.getLogger("ENGINE")
 
 class Widget:
     "Instances of this class are widgets and some class methods"
-    widgetsList = []
+    List = []
     mainQueue = queue.Queue()
     NEEDED = ("mainThread", "IS_SAFE", "NAME",)
     NEEDED_INSIDE_THREAD = ("name", "kill", "run",)
 
     def __init__(self, module, codeName):
-        "Initialize new from module and add it to the widgetsList"
+        "Initialize new from module and add it to the List"
         for need in self.NEEDED:
             if not hasattr(module, need):
                 raise Widget.BadInitializationException(
@@ -80,7 +80,7 @@ class Widget:
     def parseToString(cls, separator=" < "):
         "Parse the skeleton into a string to pass it to dzen "
         string = ""
-        for thread in cls.widgetsList:
+        for thread in cls.List:
             if thread.content:
                 if string == "":
                     string = thread.content
@@ -101,22 +101,28 @@ class Widget:
             for char2 in chars2:
                 for char3 in chars3:
                     code = char1 + char2 + char3
-                    if code not in [w.codeName for w in cls.widgetsList]:
+                    if code not in [w.codeName for w in cls.List]:
                         return code
         else:
             raise Exception("Couldn't find an appropiate code")
 
     @classmethod
+    def getAvailableModules(cls):
+        files = os.listdir("widgets.wanted/")
+        return [
+            f[:-3] for f in files if isfile("widgets.wanted/" + f)]
+
+    @classmethod
     def startAllWidgets(cls):
         "Start all threads from all instances of Widget class"
-        for widget in cls.widgetsList:
+        for widget in cls.List:
             if not widget.thread.is_alive():
                 widget.start()
 
     @classmethod
-    def startWidget(cls, widgetName):
-        for widget in cls.WidgetsList:
-            if widget.name == widgetName:
+    def startWidget(cls, codeName):
+        for widget in cls.List:
+            if widget.codeName == codeName:
                 widget.start()
                 return True
         else:
@@ -125,89 +131,44 @@ class Widget:
     @classmethod
     def killAllWidgets(cls):
         "Kill all threads from all instances of Widget class"
-        for widget in cls.widgetsList:
+        for widget in cls.List:
             widget.kill()
 
     @classmethod
-    def killWidget(cls, widgetName):
-        for widget in cls.WidgetsList:
-            if widget.name == widgetName:
+    def killWidget(cls, codeName):
+        for widget in cls.List:
+            if widget.codeName == codeName:
                 widget.kill()
                 return True
         else:
             return False
 
     @classmethod
-    def loadAllWidgets(cls):
-        modules = []
-        allFiles = os.listdir("widgets.wanted/")
-        modulesFiles = [
-            f[:-3] for f in allFiles if isfile("widgets.wanted/" + f)]
-        logger.debug("Modules: " + repr(modulesFiles))
-        for fileName in modulesFiles:
-            modules.append(
-                cls._loadModuleByFileName(fileName))
-
-        for module in modules:
-            if module is None:
-                return False
-            try:
-                widget = cls(module, cls.getNewId())
-                cls._addToList(widget)
-            except Exception as e:
-                logger.error(repr(e))
-
-    @classmethod
-    def loadWidget(cls, fileName):
-        module = cls._loadModuleByFileName(fileName)
-        if module is None:
-            return False
-        try:
-            widget = cls(module, cls.getNewId())
-        except Exception as e:
-            logger.error(repr(e))
-            return False
-        return cls._addToList(widget)
-
-    @classmethod
-    def unloadModule(cls, fileName):
-        "Kill a thread and remove it from widgetsList"
-        for i in range(len(cls.widgetsList)):
-            if cls.widgetsList[i].fileName == fileName:
-                cls.widgetsList[i].kill()
-                del cls.widgetsList[i]
+    def unloadWidget(cls, codeName):
+        "Kill a thread and remove it from List"
+        for i in range(len(cls.List)):
+            if cls.List[i].codeName == codeName:
+                cls.List[i].kill()
+                del cls.List[i]
                 break
 
     @classmethod
-    def pauseWidget(cls, widgetName):
-        for widget in cls.WidgetsList:
-            if widget.name == widgetName:
+    def pauseWidget(cls, codeName):
+        for widget in cls.List:
+            if widget.codeName == codeName:
                 widget.pause()
                 return True
         else:
             return False
 
     @classmethod
-    def unpauseWidget(cls, widgetName):
-        for widget in cls.WidgetsList:
-            if widget.name == widgetName:
+    def unpauseWidget(cls, codeName):
+        for widget in cls.List:
+            if widget.codeName == codeName:
                 widget.unpause()
                 return True
         else:
             return False
-
-    @classmethod
-    def _addToList(cls, widget):
-        if widget.codeName in [w.codeName for w in cls.widgetsList]:
-            logger.info("Colliding code name, not loading")
-            return
-
-        for i in range(len(cls.widgetsList)):
-            if cls.widgetsList[i].fileName > widget.fileName:
-                cls.widgetsList.insert(i, widget)
-                break
-        else:
-            cls.widgetsList.append(widget)
 
     @classmethod
     def _loadModuleByFileName(cls, fileName):
@@ -217,11 +178,37 @@ class Widget:
         except ImportError as e:
             logger.info(
                 "{}: NOT Loaded Reason: {}".format(fileName, repr(e)))
-            return None
+            raise e
         except Exception as e:
             logger.critical(str(e))
-            return None
+            raise e
         return module
+
+    @classmethod
+    def loadAllWidgets(cls):
+        modulesFiles = cls.getAvailableModules()
+        logger.debug("Modules: " + repr(modulesFiles))
+        for fileName in modulesFiles:
+            cls.loadWidget(fileName)
+
+    @classmethod
+    def loadWidget(cls, fileName):
+        module = cls._loadModuleByFileName(fileName)
+        widget = cls(module, cls.getNewId())
+        cls._addToList(widget)
+
+    @classmethod
+    def _addToList(cls, widget):
+        if widget.codeName in [w.codeName for w in cls.List]:
+            logger.info("Colliding code name, not loading")
+            return
+
+        for i in range(len(cls.List)):
+            if cls.List[i].fileName > widget.fileName:
+                cls.List.insert(i, widget)
+                break
+        else:
+            cls.List.append(widget)
 
     @staticmethod
     class NotSafeException (Exception):
@@ -231,9 +218,4 @@ class Widget:
     @staticmethod
     class BadInitializationException (Exception):
         "Module not correctly initialz¡ized"
-        pass
-
-    @staticmethod
-    class CollidingNamesException (Exception):
-        "Can't have two modules with the same name"
         pass

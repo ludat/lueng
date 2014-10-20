@@ -25,13 +25,13 @@ class WidgetsOutputHandler (threading.Thread):
             read = self.inputStream.readline()[:-1]
             logger.debug("input: %s", repr(read))
             threadCode, string = read.split("@")
-            for widget in self.Widget.widgetsList:
+            for widget in self.Widget.List:
                 if widget.codeName == threadCode:
                     if hasattr(widget, "inputQueue"):
                         widget.inputQueue.put(string)
                         continue
 
-        for widget in self.Widget.widgetsList:
+        for widget in self.Widget.List:
             if widget.inputQueue is not None:
                 widget.inputQueue.put("DEATH")
 

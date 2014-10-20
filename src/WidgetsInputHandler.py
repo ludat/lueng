@@ -28,7 +28,7 @@ class WidgetsInputHandler (threading.Thread):
                 item['name'],
                 item['codeName'],
                 repr(item['content']))
-            for widget in self.Widget.widgetsList:
+            for widget in self.Widget.List:
                 if widget.codeName == item['codeName']:
                     widget.updateContent(item['content'])
                     continue
