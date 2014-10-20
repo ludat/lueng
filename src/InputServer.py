@@ -109,14 +109,13 @@ class InputServer(threading.Thread):
 
             for cmd in cmds:
                 try:
-                    ret += "{:10}{}".format(
+                    ret += "{:10}{}\n".format(
                         cmd,
                         self.commands[cmd].__doc__
                     )
                 except KeyError:
                     logger.warning("command '%s' not found", cmd)
-                    ret += "command '{}' not found".format(cmd)
-                    ret += "\n"
+                    ret += "command '{}' not found\n".format(cmd)
             return ret
 
     def decorate(self, func):
@@ -152,7 +151,6 @@ class InputServer(threading.Thread):
             logger.warning("recv failed")
 
         commands = data.splitlines()
-        logger.debug("commands: %s", commands)
         response = ""
         for command in commands:
             cmd, args, opt = self.parseInput(command)
