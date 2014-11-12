@@ -10,7 +10,7 @@ import subprocess
 IS_SAFE = True
 NAME = 'ramStatus'
 logger = logging.getLogger('WIDGET')
-WIDTH = 70
+WIDTH = 150
 
 
 class mainThread (threading.Thread):
@@ -26,8 +26,13 @@ class mainThread (threading.Thread):
     def run(self):
         freeRegex = re.compile(
             (
-                "Mem: *(?P<total>[0-9]+).*?"
-                "cache: *(?P<used>[0-9]+) *(?P<free>[0-9]+)"
+                "Mem: *"
+                "(?P<total>[0-9]+).*?"
+                "(?P<used>[0-9]+).*?"
+                "(?P<free>[0-9]+).*?"
+                "(?P<shared>[0-9]+).*?"
+                "(?P<buff>[0-9]+).*?"
+                "(?P<avail>[0-9]+).*?"
             ),
             re.DOTALL)
         while True:
