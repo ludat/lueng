@@ -5,12 +5,11 @@ import logging
 
 from time import sleep
 import re
-import subprocess
 
 IS_SAFE = True
 NAME = 'ramStatus'
 logger = logging.getLogger('WIDGET')
-WIDTH = 150
+WIDTH = 80
 
 
 class mainThread (threading.Thread):
@@ -24,31 +23,41 @@ class mainThread (threading.Thread):
         self._killed.clear()
 
     def run(self):
-        freeRegex = re.compile(
+        self.memRegex = re.compile(
             (
-                "Mem: *"
-                "(?P<total>[0-9]+).*?"
-                "(?P<used>[0-9]+).*?"
-                "(?P<free>[0-9]+).*?"
-                "(?P<shared>[0-9]+).*?"
-                "(?P<buff>[0-9]+).*?"
-                "(?P<avail>[0-9]+).*?"
+                '(.*?):\D*?(\d+)\D*'
             ),
             re.DOTALL)
         while True:
-            freeProc = subprocess.Popen(
-                ["free"],
-                stdout=subprocess.PIPE,
-                universal_newlines=True)
-            freeProc.wait()
-            freeOutput = freeProc.stdout.read()
-            d = freeRegex.search(freeOutput).groupdict()
-            result = self.format(d)
+            memFile = open("/proc/meminfo")
+            memRaw = memFile.read()
+            memDict = self.parseMemFile(memRaw)
+            result = self.format(memDict)
             if self.killed():
                 break
             self.updateContent(result)
             sleep(1)
         return 0
+
+    def format(self, d):
+        for k in d:
+            d[k] = int(d[k])
+
+        free = round(d['MemAvailable'] * WIDTH / d['MemTotal'])
+        used = round((d['MemTotal'] - d['MemAvailable'] ) * WIDTH / d['MemTotal'])
+
+        return (
+            "^i(icons/xbm/mem.xbm) "
+            "^fg(#CCCCCC)^r({}x1)^fg(#999999)^r({}x1)^fg()".format(used, free)
+        )
+
+    def parseMemFile(self, raw):
+        memArr = raw.splitlines()
+        memDict = {}
+        for field in memArr:
+            key, value = self.memRegex.search(field).groups()
+            memDict[key] = value
+        return memDict
 
     def updateContent(self, string):
         if string != self.lastUpdate:
@@ -57,18 +66,6 @@ class mainThread (threading.Thread):
                 'codeName': self.codeName,
                 'content': string})
             self.lastUpdate = string
-
-    def format(self, d):
-        for k in d:
-            d[k] = int(d[k])
-
-        used = round(d['used'] * WIDTH / d['total'])
-        free = round(d['free'] * WIDTH / d['total'])
-
-        return (
-            "^i(icons/xbm/mem.xbm) "
-            "^fg(#CCCCCC)^r({}x1)^fg(#999999)^r({}x1)^fg()".format(used, free)
-        )
 
     def killed(self):
         return self._killed.is_set()
