@@ -3,7 +3,7 @@ import logging
 from Config import CONFIG
 CONFIG = CONFIG['OUTPUT_WIDGET']
 
-logger = logging.getLogger('INPUT_WIDGET')
+logger = logging.getLogger('OUTPUT_WIDGET')
 
 
 class WidgetsOutputHandler (threading.Thread):

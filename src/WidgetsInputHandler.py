@@ -32,8 +32,9 @@ class WidgetsInputHandler (threading.Thread):
                 if widget.codeName == item['codeName']:
                     widget.updateContent(item['content'])
                     continue
-
-            self.outputStream.write(self.Widget.parseToString())
+            output = self.Widget.parseToString()
+            logger.debug("Updated output:\n\t%s", output)
+            self.outputStream.write(output)
             self.outputStream.flush()
 
     def killed(self):

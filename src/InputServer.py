@@ -6,7 +6,7 @@ import os
 import threading
 import logging
 from Config import CONFIG
-CONFIG = CONFIG['INPUT_WIDGET']
+CONFIG = CONFIG['INPUT_SERVER']
 
 logger = logging.getLogger('INPUT_SERVER')
 
