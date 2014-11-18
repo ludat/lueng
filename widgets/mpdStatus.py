@@ -20,7 +20,6 @@ class mainThread (threading.Thread):
         self.lastUpdate = "dsadwa"
         self._killed = threading.Event()
         self._killed.clear()
-        self.wasWorking = True
 
     def run(self):
         while True:
@@ -28,6 +27,9 @@ class mainThread (threading.Thread):
             result = ""
             if 'error' in status:
                 result = status['error']
+                self.updateContent(self.parse(result))
+                time.sleep(10)
+                result = ""
             elif status['state'] == "stop":
                 result = ""
             elif status['state'] == "pause":
@@ -95,11 +97,7 @@ class mainThread (threading.Thread):
                     break
             sock.close()
         except:
-            if self.wasWorking:
-                return {'error': 'Connection error'}
-            else:
-                time.sleep(2)
-                return {'error': ''}
+            return {'error': 'Connection error'}
 
         return self.parseInput(data)
 
