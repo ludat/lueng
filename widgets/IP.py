@@ -38,6 +38,7 @@ class mainThread (threading.Thread):
             for IP in IPs:
                 if IP != "127.0.0.1/8":
                     result = IP
+                    break
 
             if self.killed():
                 break
