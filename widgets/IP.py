@@ -57,6 +57,16 @@ class mainThread (threading.Thread):
                     Proc.stdin.close()
                 except:
                     pass
+            else:
+                try:
+                    Proc = subprocess.Popen(
+                        ["festival", "--tts"],
+                        stdin=subprocess.PIPE,
+                        universal_newlines=True)
+                    Proc.stdin.write("connection acquired")
+                    Proc.stdin.close()
+                except:
+                    pass
             self.mainQueue.put({
                 'name': self.name,
                 'codeName': self.codeName,
