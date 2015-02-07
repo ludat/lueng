@@ -5,6 +5,7 @@ import sys
 os.chdir(os.path.dirname(__file__) + "/../")
 sys.path.append(os.getcwd() + "/widgets.wanted/")
 
+#TODO do I need to modify something here?
 import CustomLoggers
 from Config import CONFIG
 CONFIG = CONFIG['MAIN']

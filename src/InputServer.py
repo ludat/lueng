@@ -11,6 +11,7 @@ CONFIG = CONFIG['INPUT_SERVER']
 logger = logging.getLogger('INPUT_SERVER')
 
 
+#TODO do I need to modify something here?
 class InputServer(threading.Thread):
     "Unix socket server for interaction with the user"
     def __init__(self, Widget):

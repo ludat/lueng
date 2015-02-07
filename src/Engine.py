@@ -1,6 +1,5 @@
 import queue
 import logging
-from importlib import import_module, reload
 from random import shuffle
 from os.path import isfile
 import os
@@ -13,62 +12,34 @@ logger = logging.getLogger("ENGINE")
 class Widget:
     "Instances of this class are widgets and some class methods"
     List = []
-    mainQueue = queue.Queue()
-    NEEDED = ("mainThread", "IS_SAFE", "NAME",)
-    NEEDED_INSIDE_THREAD = ("name", "kill", "run",)
+    WANTED = ("name", "is_safe",)
 
     def __init__(self, module, codeName):
         "Initialize new from module and add it to the List"
-        for need in self.NEEDED:
-            if not hasattr(module, need):
-                raise Widget.BadInitializationException(
-                    "Missing object in module: " + need)
-
-        self.inputQueue = queue.Queue()
-
+        #TODO how should I initialize the processes?
         self.codeName = codeName
-
-        if CONFIG['SAFE_MODULES_ONLY']:
-            if module.IS_SAFE:
-                self.thread = module.mainThread(
-                    self.codeName,
-                    self.mainQueue,
-                    inputQueue=self.inputQueue)
-            else:
-                raise Widget.NotSafeException(
-                    "Unsafe thread in safe enviroment")
-        else:
-            self.thread = module.mainThread(
-                self.codeName,
-                self.mainQueue,
-                inputQueue=self.inputQueue)
-
-        for need in self.NEEDED_INSIDE_THREAD:
-            if not hasattr(self.thread, need):
-                raise Widget.BadInitializationException(
-                    "Missing object in main thread: " + need)
-
+        self.PID = -1
         self.name = module.NAME
         self.fileName = module.__file__
         self.content = "Nothing yet"
 
     def updateContent(self, newContent):
-        "Update the actual content with some new content sent by the thread"
+        "Update the actual content with some new content sent by the process"
         self.content = newContent
 
     def pause(self):
         "pause this thread"
-        self.thread.pause()
+        #TODO Will SIGSTOP do the job here?
         logger.info("Thread '" + self.name + "' paused")
 
     def unpause(self):
         "unpause this thread"
-        self.thread.unpause()
+        #TODO Will SIGCONT do the job here?
         logger.info("Thread '" + self.name + "' unpaused")
 
     def kill(self):
         "Kill this thread"
-        self.thread.kill()
+        #TODO I guess SIGINT will do the job
         logger.info("Thread '" + self.name + "' killed")
 
     def start(self):
@@ -209,13 +180,3 @@ class Widget:
                 break
         else:
             cls.List.append(widget)
-
-    @staticmethod
-    class NotSafeException (Exception):
-        "Not-safe thread in a safe enviroment"
-        pass
-
-    @staticmethod
-    class BadInitializationException (Exception):
-        "Module not correctly initialz¡ized"
-        pass
