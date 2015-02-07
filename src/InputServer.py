@@ -55,7 +55,7 @@ class InputServer(threading.Thread):
             codeName = args[0]
             try:
                 self.Widget.unloadWidget(codeName)
-                return "Widget loaded\n"
+                return "Widget unloaded\n"
             except Exception as e:
                 logger.warning(str(e))
                 return str(e)
