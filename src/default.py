@@ -1,6 +1,16 @@
 {
     'MAIN': {
-        'LOGGING_LEVEL': 10
+        'LOGGING_LEVEL': 10,
+        'OUTPUT_CMD': [
+            "dzen2",
+            "-ta", "r",
+            "-bg", "#161616",
+            "-fn", "Terminus:size=8",
+            "-w", "1300",
+            "-x", "500",
+            "-e", "",
+            "-dock"
+        ]
     },
     'ENGINE': {
         'LOGGING_LEVEL': 10,

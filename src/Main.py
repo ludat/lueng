@@ -27,14 +27,7 @@ def main():
     Widget.startAllWidgets()
 
     dzenProcess = subprocess.Popen(
-        ["dzen2",
-            "-ta", "r",
-            "-bg", "#161616",
-            "-fn", "Terminus:size=8",
-            "-w", "1300",
-            "-x", "500",
-            "-e", "",
-            "-dock"],
+        CONFIG['OUTPUT_CMD'],
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         universal_newlines=True)
