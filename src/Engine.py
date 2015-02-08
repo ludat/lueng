@@ -1,7 +1,7 @@
 import queue
 import logging
 from random import shuffle
-from os.path import isfile
+from os.path import isfile, islink, basename, realpath, exists
 import os
 from Config import CONFIG
 CONFIG = CONFIG['ENGINE']
@@ -16,11 +16,12 @@ class Widget:
 
     def __init__(self, filePath, codeName):
         "Initialize new from module and add it to the List"
-        #TODO how should I initialize the processes?
+        #TODO check if stuff is valid and raise exceptions if not
         self.codeName = codeName
-        self.PID = -1
-        self.name = module.NAME
-        self.fileName = module.__file__
+        self.filePath = filePath
+        self.fileName = basename(filePath)
+        self.name = basename(realpath(filePath))
+        self.PID = 0
         self.content = "Nothing yet"
 
     def updateContent(self, newContent):
@@ -81,7 +82,7 @@ class Widget:
     def getAvailableModules(cls):
         files = os.listdir("widgets.wanted/")
         return [
-            f[:-3] for f in files if isfile("widgets.wanted/" + f)]
+            f for f in files if isfile("widgets.wanted/" + f)]
 
     @classmethod
     def startAllWidgets(cls):
@@ -156,15 +157,14 @@ class Widget:
 
     @classmethod
     def loadAllWidgets(cls):
-        modulesFiles = cls.getAvailableModules()
-        logger.debug("Modules: " + repr(modulesFiles))
-        for fileName in modulesFiles:
+        files = cls.getAvailableModules()
+        logger.debug("Modules: " + repr(files))
+        for fileName in files:
             cls.loadWidget(fileName)
 
     @classmethod
     def loadWidget(cls, fileName):
-        module = cls._loadModuleByFileName(fileName)
-        widget = cls(module, cls.getNewId())
+        widget = cls(fileName, cls.getNewId())
         cls._addToList(widget)
 
     @classmethod
