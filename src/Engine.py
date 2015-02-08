@@ -14,7 +14,7 @@ class Widget:
     List = []
     WANTED = ("name", "is_safe",)
 
-    def __init__(self, module, codeName):
+    def __init__(self, filePath, codeName):
         "Initialize new from module and add it to the List"
         #TODO how should I initialize the processes?
         self.codeName = codeName
@@ -28,35 +28,35 @@ class Widget:
         self.content = newContent
 
     def pause(self):
-        "pause this thread"
+        "pause this process"
         #TODO Will SIGSTOP do the job here?
-        logger.info("Thread '" + self.name + "' paused")
+        logger.info("process '" + self.name + "' paused")
 
     def unpause(self):
-        "unpause this thread"
+        "unpause this process"
         #TODO Will SIGCONT do the job here?
-        logger.info("Thread '" + self.name + "' unpaused")
+        logger.info("process '" + self.name + "' unpaused")
 
     def kill(self):
-        "Kill this thread"
+        "Kill this process"
         #TODO I guess SIGINT will do the job
-        logger.info("Thread '" + self.name + "' killed")
+        logger.info("process '" + self.name + "' killed")
 
     def start(self):
-        "Start this thread"
-        self.thread.start()
-        logger.info("Thread '" + self.name + "' started")
+        "Start this process"
+        #TODO start the process with popen
+        logger.info("process '" + self.name + "' started")
 
     @classmethod
     def parseToString(cls, separator=" < "):
         "Parse the skeleton into a string to pass it to dzen "
         string = ""
-        for thread in cls.List:
-            if thread.content:
+        for process in cls.List:
+            if process.content:
                 if string == "":
-                    string = thread.content
+                    string = process.content
                 else:
-                    string = thread.content + separator + string
+                    string = process.content + separator + string
         return (string+"\n")
 
     @classmethod
@@ -87,8 +87,7 @@ class Widget:
     def startAllWidgets(cls):
         "Start all threads from all instances of Widget class"
         for widget in cls.List:
-            if not widget.thread.is_alive():
-                widget.start()
+            widget.start()
 
     @classmethod
     def startWidget(cls, codeName):
