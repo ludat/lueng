@@ -142,20 +142,6 @@ class Widget:
             return False
 
     @classmethod
-    def _loadModuleByFileName(cls, fileName):
-        "This shit should load widgets by file name"
-        try:
-            module = reload(import_module(fileName))
-        except ImportError as e:
-            logger.info(
-                "{}: NOT Loaded Reason: {}".format(fileName, repr(e)))
-            raise e
-        except Exception as e:
-            logger.critical(str(e))
-            raise e
-        return module
-
-    @classmethod
     def loadAllWidgets(cls):
         files = cls.getAvailableModules()
         logger.debug("Modules: " + repr(files))
