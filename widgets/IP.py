@@ -1,15 +1,8 @@
 #!/bin/env python3
-
-import threading
-import logging
-
 import time
 import subprocess
 import re
 
-logger = logging.getLogger('WIDGET')
-
-codeName = 'aaa'
 lastUpdate = "dsadwa"
 
 def main():
@@ -59,7 +52,7 @@ def updateContent(string):
         lastUpdate = string
 
 def printContent(string):
-    print("{}|{}".format(codeName,string))
+    print(string)
 
 if __name__ == "__main__":
     main()
