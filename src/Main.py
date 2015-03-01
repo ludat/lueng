@@ -30,9 +30,14 @@ def main():
         universal_newlines=True)
     inputServer = InputServer(Widget)
 
-    widgetsInputHandler = WidgetsInputHandler(Widget, dzenProcess.stdin)
+    widgetsInputHandler = WidgetsInputHandler(
+            Widget,
+            Widget.getNewSubscriberPipe(),
+            dzenProcess.stdin)
 
-    widgetsOutputHandler = WidgetsOutputHandler(Widget, dzenProcess.stdout)
+    widgetsOutputHandler = WidgetsOutputHandler(
+            Widget,
+            dzenProcess.stdout)
 
     inputServer.start()
 
