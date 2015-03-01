@@ -88,9 +88,11 @@ class Widget:
 
     @classmethod
     def getAvailableModules(cls):
+        "Get a list of all available modules in widgets.wanted folder"
         files = os.listdir("widgets.wanted/")
-        return [
-            f for f in files if isfile("widgets.wanted/" + f)]
+        filesComp = [
+            "widgets.wanted/"+f for f in files if isfile("widgets.wanted/" + f)]
+        return list(map(os.path.abspath, filesComp))
 
     @classmethod
     def startAllWidgets(cls):
