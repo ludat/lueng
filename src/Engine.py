@@ -12,6 +12,7 @@ logger = logging.getLogger("ENGINE")
 class Widget:
     "Instances of this class are widgets and some class methods"
     List = []
+    SubscribersPipes = []
     WANTED = ("name", "is_safe",)
 
     def __init__(self, filePath, codeName):
@@ -77,6 +78,13 @@ class Widget:
                         return code
         else:
             raise Exception("Couldn't find an appropiate code")
+
+    @classmethod
+    def getNewSubscriberPipe(cls):
+        "Create a read/write pipe pair to publish changes to widget class"
+        r, w = os.pipe()
+        cls.SubscribersPipes.append(open(w, mode='w'))
+        return open(r, mode='r')
 
     @classmethod
     def getAvailableModules(cls):
