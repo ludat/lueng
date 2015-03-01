@@ -1,5 +1,6 @@
 import queue
 import logging
+import subprocess
 from random import shuffle
 from os.path import isfile, islink, basename, realpath, exists
 import os
@@ -21,8 +22,9 @@ class Widget:
         self.codeName = codeName
         self.filePath = filePath
         self.fileName = basename(filePath)
+        self.realFilePath = realpath(filePath)
         self.name = basename(realpath(filePath))
-        self.PID = 0
+        self.p = None
         self.content = "Nothing yet"
 
     def updateContent(self, newContent):
@@ -46,7 +48,11 @@ class Widget:
 
     def start(self):
         "Start this process"
-        #TODO start the process with popen
+        self.p = subprocess.Popen(
+                [self.realFilePath, self.codeName],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                universal_newlines=True)
         logger.info("process '" + self.name + "' started")
 
     @classmethod
