@@ -101,6 +101,24 @@ class Widget:
         return list(map(os.path.abspath, filesComp))
 
     @classmethod
+    def getWidgetByCodename(cls, codename):
+        for widget in cls.List:
+            if codename == widget.codeName:
+                return widget
+        else:
+            logger.warn("widget id not found")
+            raise Exception("Widget not found")
+
+    @classmethod
+    def getWidgetByFD(cls, p):
+        for widget in cls.List:
+            if widget.p.stdout.fileno() == p:
+                return widget
+        else:
+            logger.warn("widget id not found")
+            raise Exception("Widget not found")
+
+    @classmethod
     def startAllWidgets(cls):
         "Start all threads from all instances of Widget class"
         for widget in cls.List:
