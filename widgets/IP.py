@@ -52,7 +52,8 @@ def updateContent(string):
         lastUpdate = string
 
 def printContent(string):
-    print(string)
+    sys.stdout.write(string+"\n")
+    sys.stdout.flush()
 
 if __name__ == "__main__":
     main()
