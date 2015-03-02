@@ -53,7 +53,7 @@ class Widget:
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 universal_newlines=True)
-        logger.info("process '" + self.name + "' started")
+        logger.info("Process {}({}) started".format(self.name, self.codeName))
 
     @classmethod
     def parseToString(cls, separator=" < "):
