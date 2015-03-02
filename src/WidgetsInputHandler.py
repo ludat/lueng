@@ -34,27 +34,22 @@ class WidgetsInputHandler (threading.Thread):
                     poll.register(widget.p.stdout)
 
                 p, t = poll.poll()[0]
-                codename = None
-                for widget in self.Widget.List:
-                    if widget.p.stdout.fileno() == p:
-                        codename = widget.codeName
-                        break
-                else:
-                    logger.warn("widget id not found")
-                    continue
+                widget = self.Widget.getWidgetByFD(p)
 
-                if t & EPOLLIN:
-                    for widget in self.Widget.List:
-                        if widget.codeName == codename:
-                            data = widget.p.stdout.readline().replace("\n","")
-                            widget.updateContent(data)
-                            break
+                if t & EPOLLHUP:
+                    # widget.kill()
+                    self.Widget.List.remove(widget)
+                    widget.updateContent(data)
                     output = self.Widget.parseToString()
-                    logger.debug("Updated output:\n\t%s", output)
                     self.outputStream.write(output)
                     self.outputStream.flush()
-                elif t & EPOLLHUP:
-                    logger.warn("Got SIGHUP", t)
+                    logger.warn("Got SIGHUP")
+                elif t & EPOLLIN:
+                    data = widget.p.stdout.readline().replace("\n","")
+                    widget.updateContent(data)
+                    output = self.Widget.parseToString()
+                    self.outputStream.write(output)
+                    self.outputStream.flush()
                 else:
                     logger.warn("Some weird code %d", t)
 
