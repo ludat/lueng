@@ -2,6 +2,7 @@
 import time
 import subprocess
 import re
+import sys
 
 lastUpdate = "dsadwa"
 
