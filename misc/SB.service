@@ -1,6 +1,0 @@
-[Unit]
-Description=My awesome python status bar engine
-
-[Service]
-Type=simple
-ExecStart=/home/YOUR_USER_NAME/.config/SB/Main.py
