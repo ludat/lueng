@@ -3,13 +3,13 @@ import socket
 import os
 
 print("Connecting...")
-if os.path.exists("/tmp/SB"):
+if os.path.exists("/tmp/lueng.sock"):
     print("Ctrl-C to quit.")
     while True:
         try:
             x = input("> ")
             client = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-            client.connect("/tmp/SB")
+            client.connect("/tmp/lueng.sock")
             if "" != x:
                 client.sendall(x.encode('utf-8'))
             print(client.recv(1024).decode('utf-8'))

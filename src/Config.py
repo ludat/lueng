@@ -45,7 +45,7 @@ def update(d, u):
 USER_CONFIG = {}
 DEFAULT_CONFIG = {}
 CONFIG = {}
-CONFIG_FILE = os.path.expanduser('~/.config/SB/SB.conf.py')
+CONFIG_FILE = os.path.expanduser('~/.config/lueng/lueng.conf.py')
 try:
     with open(CONFIG_FILE) as configFile:
         data = configFile.read()

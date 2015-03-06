@@ -124,13 +124,13 @@ class InputServer(threading.Thread):
         return func
 
     def run(self):
-        if os.path.exists("/tmp/SB"):
+        if os.path.exists("/tmp/lueng.sock"):
             logger.warning("Socket file already exists, deleting it")
-            os.remove("/tmp/SB")
+            os.remove("/tmp/lueng.sock")
 
         logger.info("Opening socket...")
         server = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        server.bind("/tmp/SB")
+        server.bind("/tmp/lueng.sock")
         server.listen(5)
         logger.info("Listening... ")
 
@@ -140,7 +140,7 @@ class InputServer(threading.Thread):
                 break
         logger.info("Shutting down...")
         server.close()
-        os.remove("/tmp/SB")
+        os.remove("/tmp/lueng.sock")
 
     def handle(self, conn, address):
         "This will be very close to the mpd protocol"
