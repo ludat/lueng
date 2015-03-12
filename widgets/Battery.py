@@ -6,8 +6,10 @@ import os
 
 
 lastUpdate = "dsadwa"
+lastState = True
 
 def main():
+    global lastState
     powerSupplyPath = ""
     result = ""
     batDir = "/sys/class/power_supply/"
@@ -17,6 +19,7 @@ def main():
             for power_supply in power_supplies:
                 if "BAT" in power_supply:
                     powerSupplyPath = batDir + power_supply
+                    lastState = True
                     break
             else:
                 batteryNotFound()
@@ -58,10 +61,12 @@ def main():
 
 
 def batteryNotFound():
+    global lastState
     if lastState:
         updateContent("No Bat")
         time.sleep(10)
         updateContent("")
+    lastState = False
     time.sleep(1)
 
 def updateContent(string):
