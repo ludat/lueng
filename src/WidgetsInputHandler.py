@@ -32,8 +32,12 @@ class WidgetsInputHandler (threading.Thread):
                 poll.register(self.eventPipe)
                 for widget in self.Widget.List:
                     poll.register(widget.p.stdout)
+                try:
+                    p, t = poll.poll()[0]
+                except InterruptedError as e:
+                    logger.warn("Poll interrupted, possibly because a signal")
+                    continue
 
-                p, t = poll.poll()[0]
                 widget = self.Widget.getWidgetByFD(p)
 
                 if t & EPOLLHUP:
