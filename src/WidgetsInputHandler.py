@@ -31,7 +31,8 @@ class WidgetsInputHandler (threading.Thread):
             with epoll() as poll:
                 poll.register(self.eventPipe)
                 for widget in self.Widget.List:
-                    poll.register(widget.p.stdout)
+                    if widget.p is not None:
+                        poll.register(widget.p.stdout)
                 try:
                     p, t = poll.poll()[0]
                 except InterruptedError as e:

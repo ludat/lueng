@@ -27,9 +27,10 @@ class WidgetsOutputHandler (threading.Thread):
             threadCode, string = read.split("@")
             for widget in self.Widget.List:
                 if widget.codeName == threadCode:
-                    widget.p.stdin.write(string+"\n")
-                    widget.p.stdin.flush()
-                    continue
+                    if widget.p is not None:
+                        widget.p.stdin.write(string+"\n")
+                        widget.p.stdin.flush()
+                        continue
 
     def killed(self):
         return self._killed.is_set()
