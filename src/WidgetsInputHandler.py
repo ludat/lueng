@@ -33,6 +33,7 @@ class WidgetsInputHandler (threading.Thread):
                 for widget in self.Widget.List:
                     if widget.p is not None:
                         poll.register(widget.p.stdout)
+
                 try:
                     p, t = poll.poll()[0]
                 except InterruptedError as e:
@@ -42,11 +43,8 @@ class WidgetsInputHandler (threading.Thread):
                 widget = self.Widget.getWidgetByFD(p)
 
                 if t & EPOLLHUP:
-                    # widget.kill()
-                    self.Widget.List.remove(widget)
-                    widget.updateContent(data)
-                    output = self.Widget.parseToString()
-                    self.outputStream.write(output)
+                    self.Widget.removeWidget(widget)
+                    self.outputStream.write(self.Widget.parseToString())
                     self.outputStream.flush()
                     logger.warn("Got SIGHUP")
                 elif t & EPOLLIN:

@@ -1,8 +1,9 @@
 import queue
 import logging
 import subprocess
+import signal
 from random import shuffle
-from os.path import isfile, islink, basename, realpath, exists
+from os.path import isfile, islink, basename, dirname, realpath, exists
 import os
 from Config import CONFIG
 CONFIG = CONFIG['ENGINE']
@@ -43,15 +44,18 @@ class Widget:
 
     def kill(self):
         "Kill this process"
-        #TODO I guess SIGINT will do the job
+        self.p.terminate()
+        self.p = None
         logger.info("process '" + self.name + "' killed")
 
     def start(self):
         "Start this process"
+        logger.debug("started: {}".format(self.realFilePath))
         self.p = subprocess.Popen(
                 [self.realFilePath, self.codeName],
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
+                cwd=dirname(self.realFilePath),
                 universal_newlines=True)
         logger.info("Process {}({}) started".format(self.name, self.codeName))
 
@@ -101,9 +105,14 @@ class Widget:
         return list(map(os.path.abspath, filesComp))
 
     @classmethod
-    def getWidgetByCodename(cls, codename):
+    def removeWidget(cls, widget):
+        widget.kill()
+        cls.List.remove(widget)
+
+    @classmethod
+    def getWidgetBy(cls, attr, value):
         for widget in cls.List:
-            if codename == widget.codeName:
+            if getattr(widget, attr) == value:
                 return widget
         else:
             logger.warn("widget id not found")
