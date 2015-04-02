@@ -5,19 +5,23 @@ import re
 import sys
 
 lastUpdate = "dsadwa"
+lastIPs = []
 
 def main():
     IPsRegex = re.compile(
         ("[0-9]*\\.[0-9]*\\.[0-9]*\\.[0-9]*/[0-9]*"),
         re.DOTALL)
+    global lastIPs
     while True:
-        IPProc = subprocess.Popen(
+        IPOutput = subprocess.check_output(
             ["ip", "a"],
-            stdout=subprocess.PIPE,
             universal_newlines=True)
-        IPProc.wait()
-        IPOutput = IPProc.stdout.read()
-        IPs = IPsRegex.findall(IPOutput)
+        IPs = sorted(IPsRegex.findall(IPOutput))
+        if len(IPs) < len(lastIPs):
+            shout("connection lost")
+        elif len(IPs) > len(lastIPs):
+            shout("connection acquired")
+        lastIPs = IPs
         result = ""
         for IP in IPs:
             if IP != "127.0.0.1/8":
@@ -29,28 +33,20 @@ def main():
 def updateContent(string):
     global lastUpdate
     if string != lastUpdate:
-        if string == "":
-            try:
-                Proc = subprocess.Popen(
-                    ["festival", "--tts"],
-                    stdin=subprocess.PIPE,
-                    universal_newlines=True)
-                Proc.stdin.write("connection lost")
-                Proc.stdin.close()
-            except:
-                pass
-        else:
-            try:
-                Proc = subprocess.Popen(
-                    ["festival", "--tts"],
-                    stdin=subprocess.PIPE,
-                    universal_newlines=True)
-                Proc.stdin.write("connection acquired")
-                Proc.stdin.close()
-            except:
-                pass
         printContent(string)
         lastUpdate = string
+
+def shout(string):
+    try:
+        Proc = subprocess.Popen(
+            ["festival", "--tts"],
+            stdin=subprocess.PIPE,
+            universal_newlines=True)
+        Proc.stdin.write(string)
+        Proc.stdin.close()
+    except FileNotFoundError:
+        pass
+
 
 def printContent(string):
     sys.stdout.write(string+"\n")
