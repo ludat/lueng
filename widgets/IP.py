@@ -7,6 +7,7 @@ import sys
 lastUpdate = "dsadwa"
 lastIPs = []
 
+
 def main():
     IPsRegex = re.compile(
         ("[0-9]*\\.[0-9]*\\.[0-9]*\\.[0-9]*/[0-9]*"),
@@ -30,11 +31,13 @@ def main():
         updateContent(result)
         time.sleep(1)
 
+
 def updateContent(string):
     global lastUpdate
     if string != lastUpdate:
         printContent(string)
         lastUpdate = string
+
 
 def shout(string):
     try:
@@ -51,6 +54,7 @@ def shout(string):
 def printContent(string):
     sys.stdout.write(string+"\n")
     sys.stdout.flush()
+
 
 if __name__ == "__main__":
     main()
